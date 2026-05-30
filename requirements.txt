@@ -10,6 +10,7 @@ MarkupSafe==3.0.3
 mdurl==0.1.2
 ordered-set==4.1.0
 pelican==4.12.0
+Pillow==12.2.0
 Pygments==2.19.2
 python-dateutil==2.9.0.post0
 rich==15.0.0
