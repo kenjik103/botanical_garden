@@ -18,6 +18,7 @@ Dependencies: standard library + Pillow. No others.
 
 import argparse
 import configparser
+import html
 import io
 import json
 import os
@@ -342,6 +343,10 @@ def _pos(v):
     return "0" if v == 0 else "-%dpx" % v
 
 
+def _esc(s):
+    return html.escape(str(s), quote=True)
+
+
 def _base_and_state(name):
     """Split a Webamp sprite name into (base, state) where state is one of
     'normal', 'active' (pressed), or None for things we keep as-is.
@@ -490,26 +495,60 @@ def write_preview(out_dir, skin_name, vars_dict, sheets, font_png, notes, flagge
                             ("MAIN_EJECT_BUTTON", "eject")):
             buttons.append("<button class='spr-%s' title='%s (click to see :active)'></button>" % (alias, alias))
 
+    # --- bitmap font (text.png): raw sheet + parsed glyph grid + sample ----
     font_demo = ""
     if font_png:
-        # Render a sample string using the chars.json offsets inline.
         with open(os.path.join(out_dir, "chars.json")) as f:
             chars = json.load(f)
-        sample = "BOTANICAL GARDEN 2026"
+
+        # (a) the raw sheet, magnified and pixel-crisp
+        raw_sheet = ("<div class='sheet'><div class='zoom5'>"
+                     "<img src='%s' alt='%s'></div> <code>%s</code></div>"
+                     % (font_png, font_png, font_png))
+
+        # (b) every parsed glyph cut from the sheet, with its character label
+        cells = []
+        for ch in sorted(chars, key=lambda c: (chars[c][1], chars[c][0])):
+            x, y = chars[ch]
+            label = {" ": "spc"}.get(ch, ch)
+            cells.append(
+                "<figure class='cell'><span class='skinchar' "
+                "style='background-position:%s %s'></span>"
+                "<figcaption>%s</figcaption></figure>"
+                % (_pos(x), _pos(y), _esc(label))
+            )
+        glyph_grid = "<div class='glyphgrid'>%s</div>" % "".join(cells)
+
+        # (c) a rendered sample string (same offsets the skintext filter uses)
         spans = []
-        for ch in sample:
-            key = ch.upper()
-            if key in chars:
-                x, y = chars[key]
-                spans.append("<span class='skinchar' style='background-position:%s %s'></span>" % (_pos(x), _pos(y)))
-            elif " " in chars:
-                x, y = chars[" "]
-                spans.append("<span class='skinchar' style='background-position:%s %s'></span>" % (_pos(x), _pos(y)))
+        for ch in "BOTANICAL GARDEN 2026":
+            pos = chars.get(ch.upper()) or chars.get(" ")
+            if pos:
+                spans.append("<span class='skinchar' style='background-position:%s %s'></span>"
+                             % (_pos(pos[0]), _pos(pos[1])))
+        sample = "<div class='fontrow' style='zoom:3'>%s</div>" % "".join(spans)
+
         font_demo = (
-            "<h2>bitmap font</h2>"
-            "<div class='fontrow' style='zoom:3'>%s</div>"
-            "<p class='hint'>rendered via the same offsets the <code>skintext</code> filter uses</p>"
-            % "".join(spans)
+            "<h2>bitmap font — text.png</h2>"
+            "%s"
+            "<h3>parsed glyphs (%d cells, %d×%d each)</h3>%s"
+            "<h3>sample via the <code>skintext</code> filter</h3>%s"
+            % (raw_sheet, len(chars), wa.CHAR_W, wa.CHAR_H, glyph_grid, sample)
+        )
+
+    # --- time digits (numbers.png / nums_ex.png): raw sheet + parsed 0-9 ----
+    digits_demo = ""
+    digit_sheet = "NUMBERS" if "NUMBERS" in sheets else ("NUMS_EX" if "NUMS_EX" in sheets else None)
+    if digit_sheet:
+        dpng = sheets[digit_sheet]
+        suffix = "-ex" if digit_sheet == "NUMS_EX" else ""
+        cells = "".join("<span class='spr-digit-%d%s'></span>" % (d, suffix) for d in range(10))
+        digits_demo = (
+            "<h2>time digits — %s</h2>"
+            "<div class='sheet'><div class='zoom5'><img src='%s' alt='%s'></div> <code>%s</code></div>"
+            "<h3>parsed DIGIT_0…9 (9×13 each), via <code>.spr-digit-N%s</code></h3>"
+            "<div class='digits'>%s</div>"
+            % (dpng, dpng, dpng, dpng, suffix, cells)
         )
 
     note_html = ""
@@ -519,10 +558,17 @@ def write_preview(out_dir, skin_name, vars_dict, sheets, font_png, notes, flagge
             items.append("<li>skipped sprites: %s</li>" % ", ".join(flagged))
         note_html = "<h2>notes</h2><ul class='notes'>%s</ul>" % "".join(items)
 
+    # Cache-bust the stylesheet link so re-running the tool against the same
+    # --out dir during iteration always shows the freshly written CSS. Without
+    # this, the browser reuses the cached skin-sprites.css and silently drops
+    # any rules added since (the classic "glyphs are blank" footgun, when the
+    # cached copy predates the appended .skinchar rule).
+    css_v = int(os.path.getmtime(os.path.join(out_dir, "skin-sprites.css")))
+
     html = """<!DOCTYPE html>
 <html><head><meta charset="utf-8">
 <title>skin preview — {name}</title>
-<link rel="stylesheet" href="skin-sprites.css">
+<link rel="stylesheet" href="skin-sprites.css?v={cssv}">
 <style>
   :root {{ color-scheme: light; }}
   body {{ font-family: system-ui, sans-serif; margin: 0; padding: 24px;
@@ -530,6 +576,7 @@ def write_preview(out_dir, skin_name, vars_dict, sheets, font_png, notes, flagge
   h1 {{ margin: 0 0 4px; }} .sub {{ color:#555; margin:0 0 20px; }}
   h2 {{ margin: 28px 0 10px; font-size: 15px; text-transform: uppercase;
        letter-spacing: .08em; color:#444; }}
+  h3 {{ margin: 16px 0 6px; font-size: 12px; font-weight: 600; color:#666; }}
   .swatches {{ display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:6px; }}
   .sw {{ display:flex; align-items:center; gap:8px; font-size:13px; }}
   .chip {{ width:26px; height:26px; border:1px solid #0003; border-radius:4px; flex:none; }}
@@ -538,7 +585,20 @@ def write_preview(out_dir, skin_name, vars_dict, sheets, font_png, notes, flagge
              background:#cfd6df; border-radius:6px; width:max-content; zoom:2; }}
   .hint {{ color:#777; font-size:12px; }}
   .notes {{ color:#a23; font-size:13px; }}
-  .windowdemo {{ margin-top:10px; }}
+  /* raw sprite sheets, magnified & pixel-crisp */
+  .sheet {{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }}
+  .sheet code {{ font-size:11px; color:#555; }}
+  .zoom5 {{ zoom:5; display:inline-block; line-height:0; outline:1px solid #0002; }}
+  .zoom5 img {{ image-rendering:pixelated; display:block; }}
+  /* parsed glyph grid */
+  .glyphgrid {{ display:flex; flex-wrap:wrap; gap:12px 10px; padding:14px;
+               background:#cfd6df; border-radius:6px; width:max-content; max-width:100%; }}
+  .cell {{ margin:0; text-align:center; }}
+  .cell .skinchar {{ zoom:4; outline:1px solid #0002; }}
+  .cell figcaption {{ font-family:monospace; font-size:10px; color:#444; margin-top:5px; }}
+  .fontrow {{ padding:14px; background:#cfd6df; border-radius:6px; width:max-content; }}
+  .digits {{ display:flex; gap:5px; padding:14px; background:#cfd6df;
+            border-radius:6px; width:max-content; zoom:3; }}
 </style></head>
 <body>
   <h1>{name}</h1>
@@ -552,15 +612,18 @@ def write_preview(out_dir, skin_name, vars_dict, sheets, font_png, notes, flagge
   <p class="hint">click and hold a button to see its pressed (:active) sprite</p>
 
   {font_demo}
+  {digits_demo}
   {notes}
 </body></html>
 """.format(
         name=skin_name,
+        cssv=css_v,
         bg=vars_dict.get("--page-bg-mid", "#ddd"),
         swatches="".join(swatches),
         buttons="".join(buttons) or "<em>no cbuttons.bmp in this skin</em>",
         btnnote="" if buttons else " (none)",
         font_demo=font_demo,
+        digits_demo=digits_demo,
         notes=note_html,
     )
     path = os.path.join(out_dir, "preview.html")
