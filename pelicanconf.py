@@ -74,7 +74,7 @@ JINJA_GLOBALS = {"gallery_images": _gallery_images}
 # Set ACTIVE_SKIN to a folder name to re-skin the whole site; leave it "" to use
 # the theme's built-in "aero" palette. base.html links the skin's CSS when set,
 # and the `skintext` filter renders headings in the skin's bitmap font.
-ACTIVE_SKIN = "necromech"  # e.g. "necromech" or "blame-wired"; "" = built-in aero
+ACTIVE_SKIN = "blame-wired"  # e.g. "necromech" or "blame-wired"; "" = built-in aero
 
 
 def _skintext_filter():
