@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% block status %}{{ articles|length }} post{{ articles|length != 1 and "s" or "" }}{% endblock %}
+
 {% block content %}
   <h1>{{ SITENAME }}</h1>
 

@@ -4,26 +4,44 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{{ SITENAME }}{% endblock %}</title>
-  {# Styling arrives in milestone 3. CSS is intentionally absent for now. #}
+  <link rel="stylesheet" href="{{ SITEURL }}/theme/css/style.css">
 </head>
 <body>
-  {# --- shared chrome: window frame + nav (to be styled in M3) --- #}
-  <header class="site-chrome">
-    <a class="site-title" href="{{ SITEURL }}/">{{ SITENAME }}</a>
+  {# --- the application window: shared chrome for every page --- #}
+  <div class="window">
+
+    <div class="titlebar">
+      <a class="titlebar-text" href="{{ SITEURL }}/">{{ SITENAME }}</a>
+      {# decorative Y2K window buttons — visual only #}
+      <div class="titlebar-buttons" aria-hidden="true">
+        <span class="tb-btn tb-min"></span>
+        <span class="tb-btn tb-max"></span>
+        <span class="tb-btn tb-close"></span>
+      </div>
+    </div>
+
     <nav class="site-nav">
       <a href="{{ SITEURL }}/">home</a>
       {% for page in pages %}
         <a href="{{ SITEURL }}/{{ page.url }}">{{ page.title }}</a>
       {% endfor %}
     </nav>
-  </header>
 
-  <main>
-    {% block content %}{% endblock %}
-  </main>
+    <div class="window-body">
+      <main>
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+
+    <div class="statusbar">
+      <span class="status-cell">{{ SITENAME }}</span>
+      <span class="status-cell">{% block status %}ready{% endblock %}</span>
+    </div>
+
+  </div>
 
   <footer class="site-footer">
-    <p>{{ SITENAME }}</p>
+    <p>built with pelican · {{ SITENAME }}</p>
   </footer>
 </body>
 </html>

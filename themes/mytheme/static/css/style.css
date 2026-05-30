@@ -1,0 +1,280 @@
+/* =====================================================================
+   botanical garden — core theme
+   Aesthetic: Y2K / Frutiger Aero / Winamp (visual only, no audio).
+
+   ARCHITECTURE NOTE
+   -----------------
+   The DEFAULT SKIN is the variable block in :root below. Every color,
+   gradient, and bevel in the structural CSS references a var(--…) — no
+   hard-coded colors past this block. To add a skin later (M5 switcher),
+   define another scoped block, e.g.
+
+       [data-skin="dusk"] { --page-bg-top: #2a2150; … }
+
+   and the entire site recolors. Do not bake colors into the structure.
+   ===================================================================== */
+
+/* ---------- DEFAULT SKIN: "aero" --------------------------------- */
+:root {
+  /* page backdrop (sky → aqua) */
+  --page-bg-top:    #bfe6ff;
+  --page-bg-mid:    #8fd3f0;
+  --page-bg-bot:    #cdeecb;
+
+  /* the application window */
+  --window-bg:      #eef4fb;
+  --window-border:  #5a83b0;
+  --content-bg:     #ffffff;
+  --content-ink:    #16263a;
+  --muted-ink:      #5d7186;
+
+  /* glossy chrome (title bar / nav / buttons) */
+  --chrome-top:     #6db8f4;   /* light shine, upper half  */
+  --chrome-mid:     #2f7fd6;   /* the fold                 */
+  --chrome-bot:     #1f5fa8;   /* deeper, lower half       */
+  --chrome-ink:     #ffffff;
+
+  /* bevels — light catches top/left, shadow falls bottom/right */
+  --bevel-light:    rgba(255, 255, 255, 0.85);
+  --bevel-dark:     rgba(12, 40, 72, 0.45);
+
+  /* accents */
+  --accent:         #36a3e0;
+  --accent-glow:    rgba(80, 190, 255, 0.55);
+  --link:           #1466b0;
+  --link-hover:     #0a3f7a;
+
+  /* shape & type */
+  --radius:         9px;
+  --radius-sm:      5px;
+  --font-ui:        "Segoe UI", Tahoma, Verdana, Geneva, sans-serif;
+  --font-body:      "Segoe UI", Tahoma, Verdana, Geneva, sans-serif;
+}
+
+/* ---------- reset-ish ------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  padding: 2.5rem 1rem 3.5rem;
+  min-height: 100%;
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--content-ink);
+  background: linear-gradient(
+    180deg,
+    var(--page-bg-top) 0%,
+    var(--page-bg-mid) 55%,
+    var(--page-bg-bot) 100%
+  );
+  background-attachment: fixed;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ---------- the application window ------------------------------ */
+.window {
+  width: 100%;
+  max-width: 860px;
+  background: var(--window-bg);
+  border: 1px solid var(--window-border);
+  border-radius: var(--radius);
+  /* outer bevel + soft drop shadow for the floating-glass look */
+  box-shadow:
+    inset 1px 1px 0 var(--bevel-light),
+    inset -1px -1px 0 var(--bevel-dark),
+    0 10px 30px rgba(20, 50, 90, 0.35);
+  overflow: hidden;
+}
+
+/* ---------- title bar ------------------------------------------- */
+.titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  color: var(--chrome-ink);
+  /* glossy: bright shine on the top half, fold at 50%, deeper below */
+  background: linear-gradient(
+    180deg,
+    var(--chrome-top) 0%,
+    var(--chrome-mid) 50%,
+    var(--chrome-bot) 100%
+  );
+  border-bottom: 1px solid var(--window-border);
+  box-shadow: inset 0 1px 0 var(--bevel-light);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+}
+
+.titlebar-text {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  color: var(--chrome-ink);
+}
+
+.titlebar-buttons {
+  display: flex;
+  gap: 0.4rem;
+}
+
+/* glossy round Y2K window buttons (purely decorative) */
+.tb-btn {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.9),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.25);
+}
+.tb-min   { background: radial-gradient(circle at 35% 30%, #fff6a8, #e9b400); }
+.tb-max   { background: radial-gradient(circle at 35% 30%, #c9f6b0, #3fa130); }
+.tb-close { background: radial-gradient(circle at 35% 30%, #ffc1b3, #d63a22); }
+
+/* ---------- navigation (glossy tabs) ---------------------------- */
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.5rem 0.75rem;
+  background: linear-gradient(180deg, #f7fbff, #dce8f5);
+  border-bottom: 1px solid var(--window-border);
+  box-shadow: inset 0 1px 0 var(--bevel-light);
+}
+
+.site-nav a {
+  display: inline-block;
+  padding: 0.3rem 0.85rem;
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  text-decoration: none;
+  color: var(--content-ink);
+  background: linear-gradient(180deg, #ffffff, #d7e6f6);
+  border: 1px solid var(--window-border);
+  border-radius: var(--radius-sm);
+  box-shadow:
+    inset 0 1px 0 var(--bevel-light),
+    0 1px 2px rgba(20, 50, 90, 0.2);
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
+}
+
+.site-nav a:hover {
+  background: linear-gradient(180deg, #ffffff, #bfe0ff);
+  box-shadow:
+    inset 0 1px 0 var(--bevel-light),
+    0 0 8px var(--accent-glow);
+}
+
+.site-nav a:active {
+  transform: translateY(1px);
+  box-shadow: inset 0 1px 3px var(--bevel-dark);
+}
+
+/* ---------- window body (the content surface) ------------------- */
+.window-body {
+  padding: 1.5rem 1.75rem;
+}
+
+main {
+  background: var(--content-bg);
+  border: 1px solid #c4d6ea;
+  border-radius: var(--radius-sm);
+  box-shadow: inset 0 1px 3px rgba(20, 50, 90, 0.08);
+  padding: 1.5rem 1.75rem;
+}
+
+/* ---------- typography & content -------------------------------- */
+h1, h2, h3 {
+  font-family: var(--font-ui);
+  line-height: 1.25;
+  color: var(--content-ink);
+}
+h1 { font-size: 1.7rem; margin: 0 0 0.75rem; }
+h2 { font-size: 1.3rem; }
+
+a { color: var(--link); }
+a:hover { color: var(--link-hover); }
+
+time { color: var(--muted-ink); font-size: 0.85rem; }
+
+code {
+  font-family: "Consolas", "Courier New", monospace;
+  background: #eef3f9;
+  border: 1px solid #d3e0ee;
+  border-radius: 3px;
+  padding: 0.05em 0.35em;
+  font-size: 0.9em;
+}
+
+/* ---------- post list (index) ----------------------------------- */
+.post-list ul { list-style: none; margin: 0; padding: 0; }
+
+.post-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.6rem 0.25rem;
+  border-bottom: 1px dotted #c4d6ea;
+}
+.post-list li:last-child { border-bottom: none; }
+
+.post-list a {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  text-decoration: none;
+}
+.post-list a:hover { text-decoration: underline; }
+
+/* ---------- article header -------------------------------------- */
+article header {
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #d3e0ee;
+}
+article header h1 { margin-bottom: 0.25rem; }
+
+/* ---------- status bar (window footer, Win9x-style) ------------- */
+.statusbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  color: var(--muted-ink);
+  background: linear-gradient(180deg, #eef4fb, #d8e4f1);
+  border-top: 1px solid var(--window-border);
+  box-shadow: inset 0 1px 0 var(--bevel-light);
+}
+.statusbar .status-cell {
+  padding: 0.05rem 0.5rem;
+  border: 1px solid #c4d6ea;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: inset 0 1px 2px rgba(20, 50, 90, 0.12);
+}
+
+/* ---------- page-level footer (below the window) ---------------- */
+.site-footer {
+  margin-top: 1.25rem;
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  color: #2b4a6b;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* ---------- small screens --------------------------------------- */
+@media (max-width: 560px) {
+  body { padding: 1rem 0.5rem 2rem; }
+  .window-body { padding: 1rem; }
+  main { padding: 1rem; }
+}
