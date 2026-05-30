@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}{{ article.title }} — {{ SITENAME }}{% endblock %}
+
+{% block content %}
+  <article>
+    <header>
+      <h1>{{ article.title }}</h1>
+      <time datetime="{{ article.date.isoformat() }}">{{ article.locale_date }}</time>
+    </header>
+
+    {{ article.content }}
+  </article>
+
+  <p><a href="{{ SITEURL }}/">← back home</a></p>
+{% endblock %}

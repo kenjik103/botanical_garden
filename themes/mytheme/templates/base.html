@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="{{ DEFAULT_LANG }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ SITENAME }}{% endblock %}</title>
+  {# Styling arrives in milestone 3. CSS is intentionally absent for now. #}
+</head>
+<body>
+  {# --- shared chrome: window frame + nav (to be styled in M3) --- #}
+  <header class="site-chrome">
+    <a class="site-title" href="{{ SITEURL }}/">{{ SITENAME }}</a>
+    <nav class="site-nav">
+      <a href="{{ SITEURL }}/">home</a>
+      {% for page in pages %}
+        <a href="{{ SITEURL }}/{{ page.url }}">{{ page.title }}</a>
+      {% endfor %}
+    </nav>
+  </header>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <p>{{ SITENAME }}</p>
+  </footer>
+</body>
+</html>

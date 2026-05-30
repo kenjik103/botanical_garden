@@ -1,0 +1,10 @@
+# Pelican build artifact — generated, never edit by hand
+output/
+
+# Python virtual environment
+.venv/
+
+# Pelican cache
+__pycache__/
+*.pyc
+.cache/
