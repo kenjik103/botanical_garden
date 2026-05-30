@@ -76,117 +76,79 @@ body {
   align-items: center;
 }
 
-/* ---------- the application window ------------------------------ */
-.window {
+/* ---------- the main window: a 1:1 Winamp clone ----------------- *
+   A pixel-exact reproduction of the Winamp main window. main.png is
+   the focal point (set as the background, inlined in base.html so the
+   active-skin path resolves); every overlay below is absolutely placed
+   at its true Winamp coordinate. A skin is REQUIRED — there is no
+   non-sprite fallback. Tune --wa-scale to resize the whole window;
+   integer factors keep the pixel art crisp.
+   ---------------------------------------------------------------- */
+:root {
+  --wa-scale: 2;   /* whole-window zoom; 1 = native 275x116px */
+}
+
+.winamp-stage {        /* the page hero: centers the window */
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.winamp-main {
+  position: relative;
+  width: 275px;
+  height: 116px;
+  background-repeat: no-repeat;
+  background-size: 275px 116px;
+  image-rendering: pixelated;
+  zoom: var(--wa-scale);
+  box-shadow: 0 10px 30px rgba(20, 50, 90, 0.45);
+}
+
+/* every direct child is an overlay pinned to a true Winamp coordinate */
+.winamp-main > * { position: absolute; }
+.winamp-main a   { line-height: 0; cursor: pointer; text-decoration: none; }
+.winamp-main a:focus-visible { outline: 1px solid var(--accent); outline-offset: 1px; }
+
+/* --- title bar: active sprite strip + window-control buttons --- */
+.wa-titlebar { top: 0;   left: 0;    }
+.wa-opt      { top: 3px; left: 6px;   }
+.wa-min      { top: 3px; left: 244px; }
+.wa-shade    { top: 3px; left: 254px; }
+.wa-close    { top: 3px; left: 264px; }
+
+/* --- the display "screen": site name in the skin's bitmap font --- */
+.wa-marquee  { top: 28px; left: 24px; }
+
+/* --- transport buttons = primary nav (cbuttons row, y≈88) -------- */
+.wa-prev  { left: 16px;  top: 88px; }
+.wa-play  { left: 39px;  top: 88px; }
+.wa-pause { left: 62px;  top: 88px; }
+.wa-stop  { left: 85px;  top: 88px; }
+.wa-next  { left: 108px; top: 88px; }
+.wa-eject { left: 136px; top: 89px; }
+
+/* screen-reader-only labels for the icon-only transport links */
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  clip: rect(0 0 0 0); clip-path: inset(50%);
+  overflow: hidden; white-space: nowrap;
+}
+
+/* ---------- content surface (below the player) ------------------ */
+.content-surface {
   width: 100%;
   max-width: 860px;
-  background: var(--window-bg);
+  margin-top: 1rem;
+  background: var(--content-bg);
   border: 1px solid var(--window-border);
-  border-radius: var(--radius);
-  /* outer bevel + soft drop shadow for the floating-glass look */
+  border-radius: var(--radius-sm);
   box-shadow:
     inset 1px 1px 0 var(--bevel-light),
-    inset -1px -1px 0 var(--bevel-dark),
-    0 10px 30px rgba(20, 50, 90, 0.35);
-  overflow: hidden;
-}
-
-/* ---------- title bar ------------------------------------------- */
-.titlebar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.5rem 0.75rem;
-  color: var(--chrome-ink);
-  /* glossy: bright shine on the top half, fold at 50%, deeper below */
-  background: linear-gradient(
-    180deg,
-    var(--chrome-top) 0%,
-    var(--chrome-mid) 50%,
-    var(--chrome-bot) 100%
-  );
-  border-bottom: 1px solid var(--window-border);
-  box-shadow: inset 0 1px 0 var(--bevel-light);
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
-}
-
-.titlebar-text {
-  font-family: var(--font-ui);
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-decoration: none;
-  color: var(--chrome-ink);
-}
-
-.titlebar-buttons {
-  display: flex;
-  gap: 0.4rem;
-}
-
-/* glossy round Y2K window buttons (purely decorative) */
-.tb-btn {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 1px solid rgba(0, 0, 0, 0.3);
-  box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.9),
-    inset 0 -1px 2px rgba(0, 0, 0, 0.25);
-}
-.tb-min   { background: radial-gradient(circle at 35% 30%, #fff6a8, #e9b400); }
-.tb-max   { background: radial-gradient(circle at 35% 30%, #c9f6b0, #3fa130); }
-.tb-close { background: radial-gradient(circle at 35% 30%, #ffc1b3, #d63a22); }
-
-/* ---------- navigation (glossy tabs) ---------------------------- */
-.site-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  padding: 0.5rem 0.75rem;
-  background: linear-gradient(180deg, #f7fbff, #dce8f5);
-  border-bottom: 1px solid var(--window-border);
-  box-shadow: inset 0 1px 0 var(--bevel-light);
-}
-
-.site-nav a {
-  display: inline-block;
-  padding: 0.3rem 0.85rem;
-  font-family: var(--font-ui);
-  font-size: 0.9rem;
-  text-decoration: none;
-  color: var(--content-ink);
-  background: linear-gradient(180deg, #ffffff, #d7e6f6);
-  border: 1px solid var(--window-border);
-  border-radius: var(--radius-sm);
-  box-shadow:
-    inset 0 1px 0 var(--bevel-light),
-    0 1px 2px rgba(20, 50, 90, 0.2);
-  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
-}
-
-.site-nav a:hover {
-  background: linear-gradient(180deg, #ffffff, #bfe0ff);
-  box-shadow:
-    inset 0 1px 0 var(--bevel-light),
-    0 0 8px var(--accent-glow);
-}
-
-.site-nav a:active {
-  transform: translateY(1px);
-  box-shadow: inset 0 1px 3px var(--bevel-dark);
-}
-
-/* ---------- window body (the content surface) ------------------- */
-.window-body {
-  padding: 1.5rem 1.75rem;
-}
-
-main {
-  background: var(--content-bg);
-  border: 1px solid #c4d6ea;
-  border-radius: var(--radius-sm);
-  box-shadow: inset 0 1px 3px rgba(20, 50, 90, 0.08);
+    0 6px 18px rgba(20, 50, 90, 0.25);
   padding: 1.5rem 1.75rem;
 }
 
@@ -261,15 +223,6 @@ article header h1 { margin-bottom: 0.25rem; }
   border-radius: 3px;
   background: rgba(255, 255, 255, 0.5);
   box-shadow: inset 0 1px 2px rgba(20, 50, 90, 0.12);
-}
-
-/* ---------- page-level footer (below the window) ---------------- */
-.site-footer {
-  margin-top: 1.25rem;
-  font-family: var(--font-ui);
-  font-size: 0.8rem;
-  color: #2b4a6b;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 /* ---------- gallery --------------------------------------------- */

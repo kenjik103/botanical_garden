@@ -12,41 +12,13 @@
   {% endif %}
 </head>
 <body>
-  {# --- the application window: shared chrome for every page --- #}
-  <div class="window">
-
-    <div class="titlebar">
-      <a class="titlebar-text" href="{{ SITEURL }}/">{{ SITENAME }}</a>
-      {# decorative Y2K window buttons — visual only #}
-      <div class="titlebar-buttons" aria-hidden="true">
-        <span class="tb-btn tb-min"></span>
-        <span class="tb-btn tb-max"></span>
-        <span class="tb-btn tb-close"></span>
-      </div>
-    </div>
-
-    <nav class="site-nav">
-      <a href="{{ SITEURL }}/">home</a>
-      {% for page in pages %}
-        <a href="{{ SITEURL }}/{{ page.url }}">{{ page.title }}</a>
-      {% endfor %}
-    </nav>
-
-    <div class="window-body">
-      <main>
-        {% block content %}{% endblock %}
-      </main>
-    </div>
-
-    <div class="statusbar">
-      <span class="status-cell">{{ SITENAME }}</span>
-      <span class="status-cell">{% block status %}ready{% endblock %}</span>
-    </div>
-
-  </div>
-
-  <footer class="site-footer">
-    <p>built with pelican · {{ SITENAME }}</p>
-  </footer>
+  {# Plain shell. The Winamp clone is home-only and lives in index.html,
+     which overrides `body`. Section pages (article/page/gallery) fall
+     through to this default: their content in a panel, no player. #}
+  {% block body %}
+  <main class="content-surface">
+    {% block content %}{% endblock %}
+  </main>
+  {% endblock %}
 </body>
 </html>

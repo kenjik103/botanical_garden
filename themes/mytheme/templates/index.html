@@ -1,22 +1,42 @@
 {% extends "base.html" %}
 
-{% block status %}{{ articles|length }} post{{ articles|length != 1 and "s" or "" }}{% endblock %}
+{# The home page IS the Winamp clone — and nothing else. main.png is the
+   focal point (background, inlined here so the active-skin path resolves),
+   with every control overlaid at its true Winamp coordinate. The
+   coordinate map lives in style.css; tune --wa-scale there to resize.
+   This is home-only: section pages open in their own tabs without it. #}
+{% block body %}
+  <div class="winamp-stage">
+    <div class="winamp-main"
+         style="background-image:url('{{ SITEURL }}/theme/skins/{{ ACTIVE_SKIN }}/main.png')">
 
-{% block content %}
-  <h1>{{ SITENAME }}</h1>
+      {# title bar: active strip + decorative window-control buttons #}
+      <div class="spr-main-title-bar-selected wa-titlebar" aria-hidden="true"></div>
+      <span class="spr-main-options-button  wa-opt"   aria-hidden="true"></span>
+      <span class="spr-main-minimize-button wa-min"   aria-hidden="true"></span>
+      <span class="spr-main-shade-button    wa-shade" aria-hidden="true"></span>
+      <span class="spr-main-close-button    wa-close" aria-hidden="true"></span>
 
-  <section class="post-list">
-    {% if articles %}
-      <ul>
-        {% for article in articles %}
-          <li>
-            <a href="{{ SITEURL }}/{{ article.url }}">{{ article.title }}</a>
-            <time datetime="{{ article.date.isoformat() }}">{{ article.locale_date }}</time>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p>No posts yet.</p>
-    {% endif %}
-  </section>
+      {# the display "screen": site name as a now-playing marquee #}
+      <a class="wa-marquee" href="{{ SITEURL }}/">{{ SITENAME|skintext }}</a>
+
+      {# transport buttons = primary nav. prev→Projects, play→Home,
+         next→Gallery, eject→source (external); pause/stop inert (reserved).
+         Section links open in a new tab. #}
+      <a class="spr-prev wa-prev" href="{{ SITEURL }}/projects/"
+         target="_blank" rel="noopener noreferrer">
+        <span class="visually-hidden">Projects</span></a>
+      <a class="spr-play wa-play" href="{{ SITEURL }}/">
+        <span class="visually-hidden">Home</span></a>
+      <span class="spr-pause wa-pause" aria-hidden="true"></span>
+      <span class="spr-stop  wa-stop"  aria-hidden="true"></span>
+      <a class="spr-next wa-next" href="{{ SITEURL }}/gallery/"
+         target="_blank" rel="noopener noreferrer">
+        <span class="visually-hidden">Gallery</span></a>
+      <a class="spr-eject wa-eject" href="https://github.com/kenjik103/botanical_garden"
+         target="_blank" rel="noopener noreferrer">
+        <span class="visually-hidden">Source on GitHub</span></a>
+
+    </div>
+  </div>
 {% endblock %}
