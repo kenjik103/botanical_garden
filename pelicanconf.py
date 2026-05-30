@@ -1,5 +1,24 @@
 """Pelican configuration. Keep this minimal — see PLAN.md."""
 
+import os
+from glob import glob as _glob
+
+
+def _gallery_images():
+    """List image filenames in content/images/gallery/, sorted.
+
+    Exposed to templates via JINJA_GLOBALS so gallery.html can glob the
+    folder at build time without a plugin (see PLAN.md "Gallery").
+    """
+    base = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "content", "images", "gallery",
+    )
+    exts = (".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg")
+    names = (os.path.basename(p) for p in _glob(os.path.join(base, "*")))
+    return sorted(n for n in names if n.lower().endswith(exts))
+
+
 AUTHOR = "Kenjiro"
 SITENAME = "botanical garden"
 SITEURL = ""  # empty for local dev; set per-environment at publish time
@@ -46,3 +65,6 @@ PAGE_SAVE_AS = "{slug}/index.html"
 
 # Relative URLs make the local --listen preview work without SITEURL.
 RELATIVE_URLS = True
+
+# Expose the gallery glob to templates (see gallery.html).
+JINJA_GLOBALS = {"gallery_images": _gallery_images}
