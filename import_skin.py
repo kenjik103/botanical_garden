@@ -73,6 +73,7 @@ EDGE_TILES = {
     "pledit-left-tile.png":   "PLAYLIST_LEFT_TILE",
     "pledit-right-tile.png":  "PLAYLIST_RIGHT_TILE",
     "pledit-corner.png":      "PLAYLIST_TOP_LEFT_CORNER",
+    "pledit-corner-tr.png":   "PLAYLIST_TOP_RIGHT_CORNER",  # has the close/shade glyphs
 }
 
 

@@ -62,11 +62,15 @@
         <div class="pl-mid">
           <span class="pl-edge-left" aria-hidden="true"
                 style="background-image:url('{{ skin }}/pledit-left-tile.png')"></span>
-          {# rows open in a fresh tab so the player page stays put #}
+          {# rows mimic a Winamp track list: "N. Artist - Title" left, length
+             right. (fake times.) Open in a fresh tab so the player stays put. #}
           <ul class="pl-body">
-            <li><a href="{{ SITEURL }}/blog/" target="_blank" rel="noopener noreferrer">1. Blog</a></li>
-            <li><a href="{{ SITEURL }}/projects/" target="_blank" rel="noopener noreferrer">2. Projects</a></li>
-            <li><a href="{{ SITEURL }}/gallery/" target="_blank" rel="noopener noreferrer">3. Gallery</a></li>
+            <li><a href="{{ SITEURL }}/blog/" target="_blank" rel="noopener noreferrer">
+              <span class="pl-name">1. Read My Mind - The Killers</span><span class="pl-time">4:07</span></a></li>
+            <li><a href="{{ SITEURL }}/projects/" target="_blank" rel="noopener noreferrer">
+              <span class="pl-name">2. 180db_[130] - Aphex Twin</span><span class="pl-time">3:08</span></a></li>
+            <li><a href="{{ SITEURL }}/gallery/" target="_blank" rel="noopener noreferrer">
+              <span class="pl-name">3. Photograph - Def Leppard</span><span class="pl-time">4:09</span></a></li>
           </ul>
           {# right edge doubles as the scrollbar groove (the right-tile sprite);
              the handle is positioned/dragged by playlist-scroll.js #}

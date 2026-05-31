@@ -192,15 +192,20 @@ body {
 }
 .pl-body::-webkit-scrollbar { display: none; }
 .pl-body a {
-  display: block;
+  display: flex;
+  justify-content: space-between;
+  gap: 1.5em;
   padding: 1px 6px;
   font-family: var(--pl-font);
-  font-size: 9px;             /* Webamp track size; ×--wa-scale via the stack */
-  line-height: 13px;
+  font-size: 7px;             /* small Winamp track text; ×--wa-scale via the stack */
+  line-height: 12px;
   letter-spacing: 0.5px;
   color: var(--content-ink); /* pledit Normal (track) text color */
   text-decoration: none;
 }
+/* "N. Artist - Title" left (truncates like Winamp); track length right */
+.pl-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-time { flex: none; }
 /* selected/hovered row uses the pledit SelectedBG + Current colors, like
    selecting a track in Winamp */
 .pl-body a:hover,
@@ -218,19 +223,48 @@ body {
   overflow: hidden; white-space: nowrap;
 }
 
-/* ---------- content surface (below the player) ------------------ */
-.content-surface {
-  width: 100%;
-  max-width: 860px;
-  margin-top: 1rem;
+/* ---------- section-page content: framed like the playlist panel -----
+   .content-surface is just the centered wrapper now; .wa-frame draws the
+   pledit-sprite border (matching the playlist) around the page content.
+   Pieces are scaled by --wf-scale (2x, to match the 2x player) via
+   background-size, kept crisp with image-rendering. --content-bg backing
+   hides sub-pixel seams between pieces.
+   --------------------------------------------------------------------- */
+.content-surface { width: 100%; max-width: 860px; margin-top: 1rem; }
+
+:root { --wf-scale: 2; }
+.wa-frame { image-rendering: pixelated; background: var(--content-bg); }
+.wf-row  { display: flex; }
+.wf-corner {
+  flex: none;
+  width:  calc(25px * var(--wf-scale));
+  height: calc(20px * var(--wf-scale));
+  background-repeat: no-repeat;
+  background-size: calc(25px * var(--wf-scale)) calc(20px * var(--wf-scale));
+}
+.wf-fill {
+  flex: 1 1 0;
+  height: calc(20px * var(--wf-scale));
+  background-repeat: repeat-x;
+  background-size: calc(25px * var(--wf-scale)) calc(20px * var(--wf-scale));
+}
+.wf-mid  { display: flex; }
+.wf-edge {
+  flex: none;
+  width: calc(12px * var(--wf-scale));
+  background-repeat: repeat-y;
+  background-size: calc(12px * var(--wf-scale)) calc(29px * var(--wf-scale));
+}
+.wf-body {
+  flex: 1 1 auto;
+  min-width: 0;
   background: var(--content-bg);
-  border: 1px solid var(--window-border);
-  border-radius: var(--radius-sm);
-  box-shadow:
-    inset 1px 1px 0 var(--bevel-light),
-    0 6px 18px rgba(20, 50, 90, 0.25);
   padding: 1.5rem 1.75rem;
 }
+/* mirror the single corner/edge sprite into the other positions */
+.wf-fx  { transform: scaleX(-1); }
+.wf-fy  { transform: scaleY(-1); }
+.wf-fxy { transform: scale(-1, -1); }
 
 /* ---------- typography & content -------------------------------- */
 h1, h2, h3 {
@@ -340,6 +374,5 @@ article header h1 { margin-bottom: 0.25rem; }
 /* ---------- small screens --------------------------------------- */
 @media (max-width: 560px) {
   body { padding: 1rem 0.5rem 2rem; }
-  .window-body { padding: 1rem; }
-  main { padding: 1rem; }
+  .wf-body { padding: 1rem; }
 }

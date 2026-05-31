@@ -14,10 +14,32 @@
 <body>
   {# Plain shell. The Winamp clone is home-only and lives in index.html,
      which overrides `body`. Section pages (article/page/gallery) fall
-     through to this default: their content in a panel, no player. #}
+     through to this default: their content sits in a Winamp window frame
+     (the same pledit border as the playlist panel) — 4 corners from
+     pledit-corner.png mirrored (wf-fx/fy/fxy), top-tile top & bottom,
+     left-tile down both sides. Tile URLs are inline (a relative url() in a
+     CSS var resolves against style.css and would 404). #}
   {% block body %}
+  {% set skin = SITEURL ~ "/theme/skins/" ~ ACTIVE_SKIN %}
   <main class="content-surface">
-    {% block content %}{% endblock %}
+    <div class="wa-frame">
+      <div class="wf-row">
+        <span class="wf-corner" style="background-image:url('{{ skin }}/pledit-corner.png')"></span>
+        <span class="wf-fill" style="background-image:url('{{ skin }}/pledit-top-tile.png')"></span>
+        {# top-right corner carries the skin's shade/close glyphs (decorative) #}
+        <span class="wf-corner" style="background-image:url('{{ skin }}/pledit-corner-tr.png')"></span>
+      </div>
+      <div class="wf-mid">
+        <span class="wf-edge" style="background-image:url('{{ skin }}/pledit-left-tile.png')"></span>
+        <div class="wf-body">{% block content %}{% endblock %}</div>
+        <span class="wf-edge wf-fx" style="background-image:url('{{ skin }}/pledit-left-tile.png')"></span>
+      </div>
+      <div class="wf-row">
+        <span class="wf-corner wf-fy" style="background-image:url('{{ skin }}/pledit-corner.png')"></span>
+        <span class="wf-fill wf-fy" style="background-image:url('{{ skin }}/pledit-top-tile.png')"></span>
+        <span class="wf-corner wf-fxy" style="background-image:url('{{ skin }}/pledit-corner.png')"></span>
+      </div>
+    </div>
   </main>
   {% endblock %}
 </body>
