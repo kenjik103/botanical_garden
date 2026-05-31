@@ -1,42 +1,89 @@
 {% extends "base.html" %}
 
-{# The home page IS the Winamp clone — and nothing else. main.png is the
-   focal point (background, inlined here so the active-skin path resolves),
-   with every control overlaid at its true Winamp coordinate. The
-   coordinate map lives in style.css; tune --wa-scale there to resize.
-   This is home-only: section pages open in their own tabs without it. #}
+{# The home page IS the Winamp player: the main window (main.png clone) with
+   a playlist panel docked below it. The transport buttons are now inert
+   (clickable, they depress, but do nothing) — navigation lives in the
+   playlist, whose rows are the site's sections. Coordinate map + sizing
+   (--wa-scale) live in style.css. Home-only: section pages open in their
+   own tabs without this chrome. #}
 {% block body %}
+  {% set skin = SITEURL ~ "/theme/skins/" ~ ACTIVE_SKIN %}
+
+  {# site title in the skin's bitmap lettering, sitting directly on the (dark)
+     page — no frame or backing box. The page background is dark (pulled from
+     the skin palette by import_skin.py) so the light glyphs read against it. #}
+  <header class="site-title">{{ SITENAME|skintext }}</header>
+
   <div class="winamp-stage">
-    <div class="winamp-main"
-         style="background-image:url('{{ SITEURL }}/theme/skins/{{ ACTIVE_SKIN }}/main.png')">
+    <div class="winamp-stack">
 
-      {# title bar: active strip + decorative window-control buttons #}
-      <div class="spr-main-title-bar-selected wa-titlebar" aria-hidden="true"></div>
-      <span class="spr-main-options-button  wa-opt"   aria-hidden="true"></span>
-      <span class="spr-main-minimize-button wa-min"   aria-hidden="true"></span>
-      <span class="spr-main-shade-button    wa-shade" aria-hidden="true"></span>
-      <span class="spr-main-close-button    wa-close" aria-hidden="true"></span>
+      {# ---- main window: 1:1 main.png clone ---- #}
+      <div class="winamp-main"
+           style="background-image:url('{{ SITEURL }}/theme/skins/{{ ACTIVE_SKIN }}/main.png')">
 
-      {# the display "screen": site name as a now-playing marquee #}
-      <a class="wa-marquee" href="{{ SITEURL }}/">{{ SITENAME|skintext }}</a>
+        {# title bar: active strip + decorative window-control buttons #}
+        <div class="spr-main-title-bar-selected wa-titlebar" aria-hidden="true"></div>
+        <span class="spr-main-options-button  wa-opt"   aria-hidden="true"></span>
+        <span class="spr-main-minimize-button wa-min"   aria-hidden="true"></span>
+        <span class="spr-main-shade-button    wa-shade" aria-hidden="true"></span>
+        <span class="spr-main-close-button    wa-close" aria-hidden="true"></span>
 
-      {# transport buttons = primary nav. prev→Projects, play→Home,
-         next→Gallery, eject→source (external); pause/stop inert (reserved).
-         Section links open in a new tab. #}
-      <a class="spr-prev wa-prev" href="{{ SITEURL }}/projects/"
-         target="_blank" rel="noopener noreferrer">
-        <span class="visually-hidden">Projects</span></a>
-      <a class="spr-play wa-play" href="{{ SITEURL }}/">
-        <span class="visually-hidden">Home</span></a>
-      <span class="spr-pause wa-pause" aria-hidden="true"></span>
-      <span class="spr-stop  wa-stop"  aria-hidden="true"></span>
-      <a class="spr-next wa-next" href="{{ SITEURL }}/gallery/"
-         target="_blank" rel="noopener noreferrer">
-        <span class="visually-hidden">Gallery</span></a>
-      <a class="spr-eject wa-eject" href="https://github.com/kenjik103/botanical_garden"
-         target="_blank" rel="noopener noreferrer">
-        <span class="visually-hidden">Source on GitHub</span></a>
+        {# transport buttons: clickable (they show the pressed sprite) but
+           inert — they navigate nowhere. The playlist below is the nav. #}
+        <button type="button" class="spr-prev  wa-prev"  aria-hidden="true" tabindex="-1"></button>
+        <button type="button" class="spr-play  wa-play"  aria-hidden="true" tabindex="-1"></button>
+        <button type="button" class="spr-pause wa-pause" aria-hidden="true" tabindex="-1"></button>
+        <button type="button" class="spr-stop  wa-stop"  aria-hidden="true" tabindex="-1"></button>
+        <button type="button" class="spr-next  wa-next"  aria-hidden="true" tabindex="-1"></button>
+        <button type="button" class="spr-eject wa-eject" aria-hidden="true" tabindex="-1"></button>
+
+      </div>
+
+      {# ---- playlist panel: rows are the site sections (the nav) ----
+         Built the way Webamp assembles it: fixed corner sprites with
+         flex-grow fill strips that tile the edge-tile PNGs (cropped by
+         import_skin.py) via background-repeat, so the frame is seamless
+         and the title stays centered at any width. The tile image is set
+         inline as a direct background-image (NOT via a CSS var): a relative
+         url() in a custom property resolves against style.css, not this
+         page, which would 404 the tiles. (`skin` is set at the top.) #}
+      <nav class="winamp-playlist" aria-label="Sections">
+
+        {# title shows the skin's UNSELECTED graphic ("BLAME!") by default and
+           flips to the SELECTED one ("wired") on hover — see style.css. #}
+        <div class="pl-top" aria-hidden="true">
+          <span class="spr-playlist-top-left-corner pl-fixed"></span>
+          <span class="pl-fill" style="background-image:url('{{ skin }}/pledit-top-tile.png')"></span>
+          <span class="spr-playlist-title-bar pl-fixed pl-title"></span>
+          <span class="pl-fill" style="background-image:url('{{ skin }}/pledit-top-tile.png')"></span>
+          <span class="spr-playlist-top-right-corner pl-fixed"></span>
+        </div>
+
+        <div class="pl-mid">
+          <span class="pl-edge-left" aria-hidden="true"
+                style="background-image:url('{{ skin }}/pledit-left-tile.png')"></span>
+          {# rows open in a fresh tab so the player page stays put #}
+          <ul class="pl-body">
+            <li><a href="{{ SITEURL }}/blog/" target="_blank" rel="noopener noreferrer">1. Blog</a></li>
+            <li><a href="{{ SITEURL }}/projects/" target="_blank" rel="noopener noreferrer">2. Projects</a></li>
+            <li><a href="{{ SITEURL }}/gallery/" target="_blank" rel="noopener noreferrer">3. Gallery</a></li>
+          </ul>
+          {# right edge doubles as the scrollbar groove (the right-tile sprite);
+             the handle is positioned/dragged by playlist-scroll.js #}
+          <span class="pl-edge-right pl-scrolltrack" aria-hidden="true"
+                style="background-image:url('{{ skin }}/pledit-right-tile.png')">
+            <span class="spr-playlist-scroll-handle pl-handle"></span>
+          </span>
+        </div>
+
+        <div class="pl-bottom" aria-hidden="true">
+          <span class="spr-playlist-bottom-left-corner"></span>
+          <span class="spr-playlist-bottom-right-corner"></span>
+        </div>
+      </nav>
 
     </div>
   </div>
+
+  <script src="{{ SITEURL }}/theme/js/playlist-scroll.js?v={{ cache_bust }}" defer></script>
 {% endblock %}

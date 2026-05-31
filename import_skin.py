@@ -60,6 +60,21 @@ SPRITE_ALIASES = {
     "MAIN_EJECT_BUTTON": "eject",
 }
 
+# Playlist frame pieces cropped into standalone PNGs. Two reasons: (1) you
+# can't background-repeat a sub-region of the combined sheet, so tileable
+# edges need their own image; (2) the sheet has 1px separator rows/cols
+# between cells — at fractional display scales a background-position sprite
+# samples across that boundary and bleeds the separator in as a thin line, so
+# even the (non-tiled) corner is cropped to isolate it. Maps output filename
+# -> the Webamp sprite to crop from the PLEDIT sheet.
+EDGE_TILES = {
+    "pledit-top-tile.png":    "PLAYLIST_TOP_TILE_SELECTED",
+    "pledit-bottom-tile.png": "PLAYLIST_BOTTOM_TILE",
+    "pledit-left-tile.png":   "PLAYLIST_LEFT_TILE",
+    "pledit-right-tile.png":  "PLAYLIST_RIGHT_TILE",
+    "pledit-corner.png":      "PLAYLIST_TOP_LEFT_CORNER",
+}
+
 
 # =====================================================================
 #  .wsz plumbing
@@ -274,16 +289,20 @@ def build_vars(skin):
 
     # --- map onto the site's real custom-property names -------------------
     v = {}
-    # page backdrop (the big gradient behind the window): build from chrome.
-    v["--page-bg-top"] = hexc(lighten(chrome_top, 0.35))
-    v["--page-bg-mid"] = hexc(lighten(chrome_mid, 0.15))
-    v["--page-bg-bot"] = hexc(lighten(window_bg, 0.05))
+    # page backdrop (the big gradient behind the window): Winamp skins are
+    # dark, so pull a dark gradient from the skin's own window/playlist colors
+    # rather than lightening the chrome into a pale page (the bitmap display
+    # text is light and must read against it).
+    v["--page-bg-top"] = hexc(window_bg)
+    v["--page-bg-mid"] = hexc(mix(window_bg, bg_selected, 0.5))
+    v["--page-bg-bot"] = hexc(bg_selected)
 
     # the application window
     v["--window-bg"] = hexc(window_bg)
     v["--window-border"] = hexc(chrome_bot)
-    v["--content-bg"] = hexc(bg)
-    v["--content-ink"] = hexc(text)
+    v["--content-bg"] = hexc(bg)              # pledit NormalBG (playlist bg)
+    v["--content-ink"] = hexc(text)           # pledit Normal (track text)
+    v["--selected-bg"] = hexc(bg_selected)    # pledit SelectedBG (selected row)
     v["--muted-ink"] = hexc(mix(text, bg, 0.4))
 
     # glossy chrome (title bar / nav / buttons)
@@ -379,6 +398,25 @@ def convert_sheets(skin, out_dir):
     return written
 
 
+def write_edge_tiles(skin, out_dir):
+    """Crop the playlist's tileable edge pieces (top/bottom/left/right) into
+    standalone PNGs so the theme can tile them seamlessly with background-
+    repeat — the combined sheet can't be repeated a sub-region at a time.
+    Returns the list of filenames written (empty if the skin has no pledit)."""
+    bmp = wa.SHEET_FILES["PLEDIT"]
+    if not skin.has(bmp):
+        return []
+    sheet = skin.open_image(bmp)
+    by_name = {s["name"]: s for s in wa.SPRITES["PLEDIT"]}
+    written = []
+    for fname, sprite_name in EDGE_TILES.items():
+        s = by_name[sprite_name]
+        box = (s["x"], s["y"], s["x"] + s["width"], s["y"] + s["height"])
+        sheet.crop(box).save(os.path.join(out_dir, fname))
+        written.append(fname)
+    return written
+
+
 def write_sprites_css(skin, out_dir, sheets):
     """Emit one class per sprite with :active variants wired to pressed slots."""
     out = [
@@ -438,13 +476,33 @@ def write_sprites_css(skin, out_dir, sheets):
 # =====================================================================
 #  Module 3 — bitmap text -> chars.json + .skinchar CSS + skintext filter
 # =====================================================================
+def _font_to_transparent(img, tol=20):
+    """Key the font sheet's background to transparent so glyphs render on any
+    surface. Winamp's text.bmp pads its cells with the display's background
+    color (opaque); left as-is, every glyph shows that color as a box on a
+    mismatched surface (e.g. the playlist rows). The background is taken from
+    the top-left padding pixel (the glyph color may actually be the single
+    most-common color, so don't key by frequency); the bg is often dithered,
+    so pixels within `tol` of the corner color become transparent."""
+    img = img.convert("RGBA")
+    br, bgc, bb, _ = img.getpixel((0, 0))
+    keyed = [
+        (r, g, b, 0)
+        if abs(r - br) <= tol and abs(g - bgc) <= tol and abs(b - bb) <= tol
+        else (r, g, b, a)
+        for r, g, b, a in img.getdata()
+    ]
+    img.putdata(keyed)
+    return img
+
+
 def write_font(skin, out_dir):
     """Convert text.bmp -> text.png, emit chars.json (char -> [x,y]) and the
     .skinchar CSS. Returns (chars_path, png_name) or (None, None) if no font."""
     if not skin.has("text.bmp"):
         return None, None
     png_name = "text.png"
-    skin.open_image("text.bmp").save(os.path.join(out_dir, png_name))
+    _font_to_transparent(skin.open_image("text.bmp")).save(os.path.join(out_dir, png_name))
 
     chars = {}
     for char, (row, col) in wa.FONT_LOOKUP.items():
@@ -662,6 +720,9 @@ def main(argv=None):
     p, flagged = write_sprites_css(skin, out_dir, sheets)
     print("  [2] sprites      -> %s (%d sheets: %s)"
           % (p, len(sheets), ", ".join(sorted(sheets)) or "none"))
+    tiles = write_edge_tiles(skin, out_dir)
+    if tiles:
+        print("  [2b] edge tiles  -> %s" % ", ".join(tiles))
 
     # Module 3 — bitmap font
     chars_path, font_png = write_font(skin, out_dir)

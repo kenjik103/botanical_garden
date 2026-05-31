@@ -26,6 +26,7 @@
   --window-border:  #5a83b0;
   --content-bg:     #ffffff;
   --content-ink:    #16263a;
+  --selected-bg:    #cfe3f7;   /* playlist selected row (pledit SelectedBG) */
   --muted-ink:      #5d7186;
 
   /* glossy chrome (title bar / nav / buttons) */
@@ -88,11 +89,29 @@ body {
   --wa-scale: 2;   /* whole-window zoom; 1 = native 275x116px */
 }
 
-.winamp-stage {        /* the page hero: centers the window */
+/* the playlist rows use a small sans-serif (Webamp-style); --pl-font is shared. */
+:root {
+  --pl-font: "Arial", "Helvetica Neue", Helvetica, sans-serif;
+  --wa-title-scale: 4;   /* integer zoom of the bitmap title; keep it whole */
+}
+
+/* site title in the skin's bitmap lettering, directly on the dark page —
+   no frame or backing box. The page background is dark (from the skin
+   palette) so the light glyphs read against it. */
+.site-title { width: 100%; margin: 0 0 1.5rem; text-align: center; line-height: 0; }
+.site-title .skintext { zoom: var(--wa-title-scale); }
+
+.winamp-stage {        /* the page hero: centers the player */
   width: 100%;
   display: flex;
   justify-content: center;
   margin-bottom: 1.5rem;
+}
+
+/* main window + playlist scale together and stay docked */
+.winamp-stack {
+  zoom: var(--wa-scale);   /* whole-player zoom; 1 = native px */
+  box-shadow: 0 10px 30px rgba(20, 50, 90, 0.45);
 }
 
 .winamp-main {
@@ -102,14 +121,14 @@ body {
   background-repeat: no-repeat;
   background-size: 275px 116px;
   image-rendering: pixelated;
-  zoom: var(--wa-scale);
-  box-shadow: 0 10px 30px rgba(20, 50, 90, 0.45);
 }
 
 /* every direct child is an overlay pinned to a true Winamp coordinate */
 .winamp-main > * { position: absolute; }
 .winamp-main a   { line-height: 0; cursor: pointer; text-decoration: none; }
 .winamp-main a:focus-visible { outline: 1px solid var(--accent); outline-offset: 1px; }
+/* inert transport buttons: clickable + they depress, but do nothing */
+.winamp-main button { cursor: pointer; }
 
 /* --- title bar: active sprite strip + window-control buttons --- */
 .wa-titlebar { top: 0;   left: 0;    }
@@ -118,16 +137,77 @@ body {
 .wa-shade    { top: 3px; left: 254px; }
 .wa-close    { top: 3px; left: 264px; }
 
-/* --- the display "screen": site name in the skin's bitmap font --- */
-.wa-marquee  { top: 28px; left: 24px; }
-
-/* --- transport buttons = primary nav (cbuttons row, y≈88) -------- */
+/* --- transport buttons (inert; nav lives in the playlist), cbuttons y≈88 -- */
 .wa-prev  { left: 16px;  top: 88px; }
 .wa-play  { left: 39px;  top: 88px; }
 .wa-pause { left: 62px;  top: 88px; }
 .wa-stop  { left: 85px;  top: 88px; }
 .wa-next  { left: 108px; top: 88px; }
 .wa-eject { left: 136px; top: 89px; }
+
+/* ---------- the playlist panel (pledit sprites) ---------------- *
+   Docks flush under the main window (275px wide). Assembled the way
+   Webamp does it: fixed corner/title sprite pieces with flex-grow fill
+   strips that tile the edge-tile PNGs (cropped by import_skin.py) via
+   background-repeat — so the frame is seamless and the title stays
+   centered at any width. The tile background-image is set inline per
+   element in index.html (a relative url() in a CSS var would resolve
+   against this stylesheet and 404); here we only set the repeat/size.
+   The rows ARE the nav.
+   ---------------------------------------------------------------- */
+.winamp-playlist { width: 275px; image-rendering: pixelated; }
+
+/* fixed sprite pieces never shrink; fills absorb the slack */
+.pl-fixed { flex: none; }
+
+/* --- title bar: corners + centered title + tiled fills --- */
+.pl-top { display: flex; height: 20px; background: var(--content-bg); }
+.pl-fill { flex: 1 1 0; height: 20px; background-repeat: repeat-x; }
+
+/* The title shows the skin's UNSELECTED graphic by default ("BLAME!" in
+   blame-wired) and flips to the SELECTED row ("wired") while the panel is
+   hovered — mimicking Winamp's window-focus swap. Only the title piece
+   differs between the two states (corners/tiles are identical), and the
+   states differ only in Y, so flipping background-position-y is enough and
+   stays skin-agnostic. */
+.winamp-playlist:hover .pl-title { background-position-y: 0; }
+
+/* --- middle: tiled left/right edges + the (scrollable) row list --- */
+.pl-mid { display: flex; }
+.pl-edge-left  { flex: none; width: 12px; background-repeat: repeat-y; }
+.pl-edge-right { flex: none; width: 20px; background-repeat: repeat-y;
+                 background-position: top right; position: relative; }
+/* the Winamp scroll handle, parked in the right-edge groove; moved by
+   playlist-scroll.js to reflect/drive the row list's scroll position */
+.pl-handle { position: absolute; top: 0; left: 6px; cursor: pointer; }
+.pl-body {
+  flex: 1 1 0;
+  list-style: none;
+  margin: 0;
+  padding: 3px 4px;
+  background: var(--content-bg);
+  max-height: var(--pl-max-h, 66px);  /* fits ~4 rows; beyond that it scrolls */
+  overflow-y: auto;
+  scrollbar-width: none;              /* hide native bar; the sprite handle is the UI */
+}
+.pl-body::-webkit-scrollbar { display: none; }
+.pl-body a {
+  display: block;
+  padding: 1px 6px;
+  font-family: var(--pl-font);
+  font-size: 9px;             /* Webamp track size; ×--wa-scale via the stack */
+  line-height: 13px;
+  letter-spacing: 0.5px;
+  color: var(--content-ink); /* pledit Normal (track) text color */
+  text-decoration: none;
+}
+/* selected/hovered row uses the pledit SelectedBG + Current colors, like
+   selecting a track in Winamp */
+.pl-body a:hover,
+.pl-body a:focus-visible { background: var(--selected-bg); color: var(--link); outline: none; }
+
+/* --- bottom: two corner pieces meet flush at 275px --- */
+.pl-bottom { display: flex; height: 38px; }
 
 /* screen-reader-only labels for the icon-only transport links */
 .visually-hidden {

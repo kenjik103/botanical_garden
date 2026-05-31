@@ -2,13 +2,14 @@
 /* Loaded AFTER the theme's style.css, so :root here overrides the
    default 'aero' palette and recolors the entire site. */
 :root {
-  --page-bg-top:   #a095a5;
-  --page-bg-mid:   #523e5c;
-  --page-bg-bot:   #2c1f36;
+  --page-bg-top:   #21132b;
+  --page-bg-mid:   #2f1a3a;
+  --page-bg-bot:   #3d224a;
   --window-bg:     #21132b;
   --window-border: #25142d;
   --content-bg:    #260f3b;
   --content-ink:   #6f5a74;
+  --selected-bg:   #3d224a;
   --muted-ink:     #523c5d;
   --chrome-top:    #6c5c75;
   --chrome-mid:    #331c3f;

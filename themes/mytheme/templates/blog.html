@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}blog — {{ SITENAME }}{% endblock %}
+
+{% block content %}
+  <h1>blog</h1>
+
+  <section class="post-list">
+    {% if articles %}
+      <ul>
+        {% for article in articles %}
+          <li>
+            <a href="{{ SITEURL }}/{{ article.url }}">{{ article.title }}</a>
+            <time datetime="{{ article.date.isoformat() }}">{{ article.locale_date }}</time>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No posts yet.</p>
+    {% endif %}
+  </section>
+{% endblock %}
