@@ -35,7 +35,7 @@ THEME = "themes/mytheme"
 
 ARTICLE_PATHS = ["blog"]            # Markdown posts → article.html
 PAGE_PATHS = ["pages"]              # Markdown pages → page.html
-STATIC_PATHS = ["images", "projects"]  # copied VERBATIM, no templating
+STATIC_PATHS = ["images", "projects", "music"]  # copied VERBATIM, no templating
 
 TIMEZONE = "America/New_York"
 DEFAULT_LANG = "en"
@@ -126,3 +126,72 @@ def _skintext_filter():
 
 
 JINJA_FILTERS = {"skintext": _skintext_filter()}
+
+
+# --- Homepage audio player: music manifest (see PLAYER.md) -------------------
+# content/music/ is copied verbatim (STATIC_PATHS). After each build we scan it
+# and write output/music.json — the ordered track list the player fetches. The
+# directory is the source of truth: drop in an audio file, rebuild, it appears.
+_AUDIO_EXTS = (".mp3", ".ogg", ".oga", ".m4a", ".opus", ".aac", ".flac", ".wav")
+
+
+def _title_from_filename(name):
+    """Readable title from a filename stem: drop a leading "NN " or "NN_" track
+    number, swap _/- for spaces, collapse whitespace."""
+    import re
+    stem = os.path.splitext(name)[0]
+    stem = re.sub(r"^\s*\d+\s*[-_.]\s*", "", stem)  # strip leading "01 - "
+    stem = re.sub(r"[_-]+", " ", stem).strip()
+    return re.sub(r"\s+", " ", stem) or os.path.splitext(name)[0]
+
+
+def _fmt_len(seconds):
+    """Seconds -> "m:ss" (Webamp-style); "" if unknown."""
+    if not seconds or seconds <= 0:
+        return ""
+    s = int(round(seconds))
+    return "%d:%02d" % (s // 60, s % 60)
+
+
+def _track_meta(path, name):
+    """(title, artist, length) for one audio file. Pulls title/artist/length
+    from ID3/Vorbis tags via mutagen when available; falls back to the filename
+    for the title (artist/length stay empty). Tags are optional (PLAYER.md)."""
+    title = artist = None
+    length = None
+    try:
+        import mutagen
+        mf = mutagen.File(path, easy=True)
+        if mf is not None:
+            if mf.tags:
+                title = (mf.tags.get("title") or [None])[0]
+                artist = (mf.tags.get("artist") or [None])[0]
+            if mf.info:
+                length = mf.info.length
+    except Exception:
+        pass  # no mutagen, or unreadable tags — fall back to the filename
+    return (title or _title_from_filename(name)), (artist or ""), _fmt_len(length)
+
+
+def _write_music_manifest(pelican):
+    """`finalized` signal handler: scan content/music/ and emit music.json.
+    The directory is the source of truth (drop a file in, rebuild, it appears);
+    metadata comes from the file's tags — do NOT hand-edit music.json."""
+    import json
+    src = os.path.join(pelican.settings["PATH"], "music")
+    out = pelican.settings["OUTPUT_PATH"]
+    tracks = []
+    if os.path.isdir(src):
+        for name in sorted(os.listdir(src)):
+            if name.lower().endswith(_AUDIO_EXTS):
+                title, artist, length = _track_meta(os.path.join(src, name), name)
+                tracks.append({"file": "music/" + name, "title": title,
+                               "artist": artist, "length": length})
+    with open(os.path.join(out, "music.json"), "w", encoding="utf-8") as fh:
+        json.dump(tracks, fh, ensure_ascii=False, indent=2)
+    print("  [music] %d track(s) -> music.json" % len(tracks))
+
+
+# Wire the hook at config-load time (Pelican executes this file at startup).
+from pelican import signals as _signals  # noqa: E402
+_signals.finalized.connect(_write_music_manifest)

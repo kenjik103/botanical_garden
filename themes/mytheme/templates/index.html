@@ -28,14 +28,21 @@
         <span class="spr-main-shade-button    wa-shade" aria-hidden="true"></span>
         <span class="spr-main-close-button    wa-close" aria-hidden="true"></span>
 
-        {# transport buttons: clickable (they show the pressed sprite) but
-           inert — they navigate nowhere. The playlist below is the nav. #}
-        <button type="button" class="spr-prev  wa-prev"  aria-hidden="true" tabindex="-1"></button>
-        <button type="button" class="spr-play  wa-play"  aria-hidden="true" tabindex="-1"></button>
-        <button type="button" class="spr-pause wa-pause" aria-hidden="true" tabindex="-1"></button>
-        <button type="button" class="spr-stop  wa-stop"  aria-hidden="true" tabindex="-1"></button>
-        <button type="button" class="spr-next  wa-next"  aria-hidden="true" tabindex="-1"></button>
+        {# transport buttons drive the homepage audio player (player.js); they
+           show the pressed sprite on click. The playlist below stays the nav. #}
+        <button type="button" class="spr-prev  wa-prev"  data-action="prev"  aria-label="Previous track"></button>
+        <button type="button" class="spr-play  wa-play"  data-action="play"  aria-label="Play"></button>
+        <button type="button" class="spr-pause wa-pause" data-action="pause" aria-label="Pause"></button>
+        <button type="button" class="spr-stop  wa-stop"  data-action="stop"  aria-label="Stop"></button>
+        <button type="button" class="spr-next  wa-next"  data-action="next"  aria-label="Next track"></button>
         <button type="button" class="spr-eject wa-eject" aria-hidden="true" tabindex="-1"></button>
+
+        {# display readouts, updated by player.js: bitmap time (numbers.bmp
+           digits) + scrolling now-playing title (text.bmp font via chars.json) #}
+        <div class="wa-time" aria-hidden="true">
+          <span class="wa-d spr-digit-0"></span><span class="wa-d spr-digit-0"></span><span class="wa-d wa-d-sec spr-digit-0"></span><span class="wa-d spr-digit-0"></span>
+        </div>
+        <div class="wa-marquee" data-chars="{{ SITEURL }}/theme/skins/{{ ACTIVE_SKIN }}/chars.json"></div>
 
       </div>
 
@@ -89,5 +96,11 @@
     </div>
   </div>
 
+  {# the player's audio element (hidden; the sprite transport buttons drive it).
+     Homepage-only — music persists across the site only because section links
+     open new tabs, never via an SPA layer (see PLAYER.md). #}
+  <audio id="wa-audio" hidden preload="metadata"></audio>
+
   <script src="{{ SITEURL }}/theme/js/playlist-scroll.js?v={{ cache_bust }}" defer></script>
+  <script src="{{ SITEURL }}/theme/js/player.js?v={{ cache_bust }}" defer></script>
 {% endblock %}

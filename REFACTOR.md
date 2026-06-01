@@ -73,17 +73,22 @@ Only then start the refactor below.
 This is the part Claude Code cannot guess — it's your information architecture. Decide it
 explicitly and hand it over. A starting proposal:
 
-- **Main window** (shared chrome in `base.html`) → site identity + primary nav. The transport
-  buttons are links to your section pages: e.g. play → Blog, next/prev → cycle sections,
-  eject → external links, stop → Home.
-- **Playlist panel** → a link list. Rows are pages/posts (the literal "playlists swapped for
-  site links" idea). Used most obviously on the Blog index, where each row links to a post.
+- **Main window** (shared chrome in `base.html`) → site identity + the audio player. The
+  transport buttons are **real audio controls** (play/pause/stop/prev/next), wired to the
+  homepage player — not navigation. On subpages the player isn't running, so the buttons can
+  be inert/decorative there, or hidden. (Player spec: PLAYER.md.)
+- **Playlist panel** → **this is now where navigation lives.** Rows are site links —
+  pages/posts (the literal "playlists swapped for site links" idea). On the Blog index, rows
+  link to posts; in the persistent chrome, rows link to the section pages. Section links
+  open in a new tab (`target="_blank" rel="noopener"`) so the homepage tab keeps playing.
 - **Equalizer panel** → a fun secondary component: skin switcher, theme toggles, or an
   "about/now-playing" blurb styled as EQ sliders.
 - **Section pages** → Projects, Gallery, About — each its own page, each dropping an
   appropriate panel into its content block.
 
-Adjust to taste, but pin it down before building. The buttons must *do* something coherent.
+Note the deliberate split: **transport buttons = playback, playlist panel = navigation.**
+This is more faithful to Winamp than making the play button a link, and it's the reason the
+player works at all — see the new-tab persistence trick in PLAYER.md.
 
 ## Layout model
 

@@ -137,7 +137,23 @@ body {
 .wa-shade    { top: 3px; left: 254px; }
 .wa-close    { top: 3px; left: 264px; }
 
-/* --- transport buttons (inert; nav lives in the playlist), cbuttons y≈88 -- */
+/* --- display readouts (player.js) --- *
+   Title scrolls in the long thin bar on the right of the display; the time
+   digits sit top-left in the big screen box. */
+.wa-marquee { top: 25px; left: 115px; width: 145px; height: 9px;
+  overflow: hidden; white-space: nowrap; line-height: 0;
+  display: flex; align-items: center;   /* vertically center the text in the bar */ }
+.wa-marquee-strip { flex: none; }        /* keep full width; may overflow + scroll */
+.wa-time { top: 26px; left: 39px; display: flex; align-items: flex-start; }
+.wa-d-sec { margin-left: 5px; }   /* gap where the ":" sits on main.bmp */
+.wa-marquee-strip { display: inline-block; }
+.wa-marquee-strip.wa-scrolling { animation: wa-marquee-scroll linear infinite; }
+@keyframes wa-marquee-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(calc(-1 * var(--wa-scroll-w, 0px))); }
+}
+
+/* --- transport buttons (player controls), cbuttons row y≈88 -------------- */
 .wa-prev  { left: 16px;  top: 88px; }
 .wa-play  { left: 39px;  top: 88px; }
 .wa-pause { left: 62px;  top: 88px; }
