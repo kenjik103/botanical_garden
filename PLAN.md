@@ -78,8 +78,10 @@ mysite/
 - **Projects (passthrough)**: each project is a self-contained folder of raw HTML/CSS/JS
   under `content/projects/`. These are **copied verbatim to the output and bypass
   templating entirely.** Mechanism: list `projects` in Pelican's `STATIC_PATHS` so Pelican
-  copies it untouched rather than processing it. Each project is its own isolated world
-  and shares nothing with the core site, so it cannot break it.
+  copies it untouched rather than processing it. A project may opt into the global theme —
+  linking the core stylesheet and the active skin's CSS/sprites (e.g. via `../../theme/...`)
+  to reuse the window-frame chrome and palette — but it only consumes the theme read-only,
+  so it still cannot break the core site. A project can also stand entirely on its own.
 - **Gallery**: a template that globs `content/images/gallery/` and lays the images out.
   Start with plain `<img>` tags; thumbnail generation can be added later if needed. No
   gallery plugin.
@@ -110,11 +112,13 @@ Disable any default pagination/feeds/categories that aren't wanted. Keep the con
 
 ## Extensibility model (important)
 
-Future "flare" pages and experiments are added as **new self-contained folders under
-`content/projects/`** — each with its own HTML/CSS/JS, fully isolated. To add one: drop the
-folder in, link to it from the nav or a project index, done. These never touch the core
-theme or each other. Treat the core site (blog/pages/gallery + theme) as stable, and
-projects as an open-ended collection of independent experiments.
+Future "flare" pages and experiments are added as **new folders under
+`content/projects/`** — each with its own HTML/CSS/JS. To add one: drop the folder in, link
+to it from the nav or a project index, done. A project may stand entirely on its own OR pull
+in the global theme (the core stylesheet + active skin) to match the site; either way it
+consumes the theme read-only and never edits the core. Treat the core site
+(blog/pages/gallery + theme) as stable, and projects as an open-ended collection of
+experiments.
 
 ---
 

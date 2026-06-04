@@ -27,8 +27,10 @@
       <div class="wf-row">
         <span class="wf-corner" style="background-image:url('{{ skin }}/pledit-corner.png')"></span>
         <span class="wf-fill" style="background-image:url('{{ skin }}/pledit-top-tile.png')"></span>
-        {# top-right corner carries the skin's shade/close glyphs (decorative) #}
-        <span class="wf-corner" style="background-image:url('{{ skin }}/pledit-corner-tr.png')"></span>
+        {# top-right corner carries the skin's close (X) glyph — make it a real
+           close button that routes home, like clicking a window's X. #}
+        <a class="wf-corner wf-close" href="{{ SITEURL }}/" title="Home" aria-label="Back to home"
+           style="background-image:url('{{ skin }}/pledit-corner-tr.png')"></a>
       </div>
       <div class="wf-mid">
         <span class="wf-edge" style="background-image:url('{{ skin }}/pledit-left-tile.png')"></span>

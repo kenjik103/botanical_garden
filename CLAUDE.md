@@ -42,8 +42,12 @@ rather than guess.
   `content/projects/` (raw HTML folders copied **verbatim** via `STATIC_PATHS`),
   `content/images/`, and `content/music/` (audio files copied verbatim via `STATIC_PATHS`;
   a build step scans it and emits `music.json` for the player).
-- Each item in `content/projects/` is a self-contained HTML/CSS/JS world that shares
-  nothing with the core theme. Adding one must never require touching the core site.
+- Each item in `content/projects/` is raw HTML/CSS/JS, copied verbatim (not templated).
+  A project MAY use the global theme — link the core `style.css` and the active skin's
+  `skin-vars.css`/`skin-sprites.css` (e.g. via `../../theme/...`) and reuse its frame
+  markup, sprites, and CSS variables so it matches the site and recolors with the skin.
+  Projects consume the theme read-only; adding one must never require editing the core
+  site/theme. A project can still stand fully on its own if it prefers.
 - All theme colors/gradients/bevels go through **CSS custom properties** — this is required
   so a skin switcher can swap variable sets later.
 - `themes/mytheme/templates/base.html` holds shared chrome; other templates extend it.

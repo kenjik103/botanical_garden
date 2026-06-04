@@ -298,6 +298,9 @@ body {
   background: var(--content-bg);
   padding: 1.5rem 1.75rem;
 }
+/* top-right corner doubles as a close button -> home */
+.wf-close { display: block; cursor: pointer; }
+.wf-close:hover { filter: brightness(1.2); }
 /* mirror the single corner/edge sprite into the other positions */
 .wf-fx  { transform: scaleX(-1); }
 .wf-fy  { transform: scaleY(-1); }

@@ -1,0 +1,64 @@
+/* fluid-sim — simulation-specific styles only.
+   The window frame, palette, page background, fonts, and .wa-frame/.wf-* rules
+   all come from the GLOBAL theme: ../../theme/css/style.css plus the active
+   skin's skin-vars.css (linked in index.html). This page recolors with the
+   skin and stays in sync with the core chrome. */
+
+.fs-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+#canvas {
+  display: block;
+  width: 640px;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  background: #000;
+  cursor: crosshair;
+  touch-action: none;          /* drag to stir without scrolling the page */
+  image-rendering: auto;       /* smooth when scaled down on small screens */
+}
+
+.hint {
+  margin: 0;
+  color: var(--content-ink);
+  opacity: 0.75;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* back link bottom-left, GitHub "+URL" sprite bottom-right */
+.controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.back {
+  color: var(--content-ink);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+.back:hover { text-decoration: underline; }
+
+/* GitHub button = the active skin's playlist "+URL" sprite, drawn at --wf-scale */
+.url-btn {
+  display: inline-block;
+  width:  calc(22px * var(--wf-scale));
+  height: calc(18px * var(--wf-scale));
+  background-image: url(../../theme/skins/blame-wired/pledit.png);
+  background-size: calc(280px * var(--wf-scale)) calc(186px * var(--wf-scale));
+  background-position: 0 calc(-111px * var(--wf-scale));
+  image-rendering: pixelated;
+  cursor: pointer;
+}
+.url-btn:hover,
+.url-btn:focus-visible,
+.url-btn:active {
+  background-position: calc(-23px * var(--wf-scale)) calc(-111px * var(--wf-scale));
+}
