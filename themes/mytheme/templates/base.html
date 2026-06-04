@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="{{ SITEURL }}/theme/skins/{{ ACTIVE_SKIN }}/skin-vars.css?v={{ cache_bust }}">
   <link rel="stylesheet" href="{{ SITEURL }}/theme/skins/{{ ACTIVE_SKIN }}/skin-sprites.css?v={{ cache_bust }}">
   {% endif %}
+  {% block extra_head %}{% endblock %}
 </head>
 <body>
   {# Plain shell. The Winamp clone is home-only and lives in index.html,

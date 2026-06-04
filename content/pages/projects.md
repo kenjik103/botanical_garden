@@ -1,4 +1,4 @@
-Title: projects
+Title: Projects
 Slug: projects
 
 Self-contained experiments. Each one lives in its own folder under

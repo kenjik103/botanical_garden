@@ -14,6 +14,24 @@
    and the entire site recolors. Do not bake colors into the structure.
    ===================================================================== */
 
+/* ---------- self-hosted webfont --------------------------------- */
+/* Iosevka: open-source (SIL OFL) monospace. Self-hosted woff2. Paths are
+   relative to this stylesheet (/theme/css/), so they survive any SITEURL. */
+@font-face {
+  font-family: "Iosevka";
+  src: url("../fonts/iosevka-regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Iosevka";
+  src: url("../fonts/iosevka-bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ---------- DEFAULT SKIN: "aero" --------------------------------- */
 :root {
   /* page backdrop (sky → aqua) */
@@ -48,8 +66,8 @@
   /* shape & type */
   --radius:         9px;
   --radius-sm:      5px;
-  --font-ui:        "Segoe UI", Tahoma, Verdana, Geneva, sans-serif;
-  --font-body:      "Segoe UI", Tahoma, Verdana, Geneva, sans-serif;
+  --font-ui:        "Iosevka", ui-monospace, "Consolas", "DejaVu Sans Mono", monospace;
+  --font-body:      "Iosevka", ui-monospace, "Consolas", "DejaVu Sans Mono", monospace;
 }
 
 /* ---------- reset-ish ------------------------------------------- */
@@ -250,6 +268,9 @@ body {
 
 :root { --wf-scale: 2; }
 .wa-frame { image-rendering: pixelated; background: var(--content-bg); }
+/* image-rendering inherits, so content <img>s would pick up the sprite's
+   pixelated scaling. Restore smooth resampling for real photos in content. */
+.wf-body img { image-rendering: auto; }
 .wf-row  { display: flex; }
 .wf-corner {
   flex: none;
@@ -291,6 +312,14 @@ h1, h2, h3 {
 h1 { font-size: 1.7rem; margin: 0 0 0.75rem; }
 h2 { font-size: 1.3rem; }
 
+/* section-page headers rendered in the skin's bitmap lettering (skintext
+   filter). The glyphs are 5x6 .skinchar cells; zoom them like the homepage
+   title. line-height:0 strips the inline line box so spacing stays tight.
+   If no skin is active, skintext falls back to plain text and this still
+   styles the <h1> sanely (font props from the h1 rule above apply). */
+.section-title { line-height: 0; margin: 0 0 1.25rem; }
+.section-title .skintext { zoom: var(--wa-title-scale); }
+
 a { color: var(--link); }
 a:hover { color: var(--link-hover); }
 
@@ -306,25 +335,75 @@ code {
 }
 
 /* ---------- post list (index) ----------------------------------- */
+/* Each entry is a card: optional thumbnail (left) + title/date/description.
+   Posts with no Image:/Description: header simply omit those pieces. */
 .post-list ul { list-style: none; margin: 0; padding: 0; }
 
 .post-list li {
+  position: relative;            /* positioning context for the stretched link */
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.6rem 0.25rem;
+  align-items: flex-start;
+  gap: 0.9rem;
+  padding: 0.9rem 0.5rem;
   border-bottom: 1px dotted #c4d6ea;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.12s ease;
 }
 .post-list li:last-child { border-bottom: none; }
+/* whole-card click target + hover feedback (skin-neutral translucent wash) */
+.post-card:hover { background: rgba(255, 255, 255, 0.07); }
+.post-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
 
-.post-list a {
+/* thumbnail — fixed box, image cropped to fill (object-fit) for a tidy grid */
+.post-thumb {
+  flex: 0 0 auto;
+  display: block;
+  width: 116px;
+  height: 84px;
+  overflow: hidden;
+  border: 1px solid var(--bevel-dark);
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.2);
+}
+.post-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* text column */
+.post-info {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.post-link {
   font-family: var(--font-ui);
   font-weight: 600;
+  font-size: 1.05rem;
   text-decoration: none;
 }
-.post-list a:hover { text-decoration: underline; }
+.post-link:hover { text-decoration: underline; }
+.post-desc {
+  margin: 0.2rem 0 0;
+  color: var(--content-ink);
+  opacity: 0.82;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* stack on narrow screens so the thumbnail doesn't crowd the text */
+@media (max-width: 480px) {
+  .post-list li { flex-direction: column; gap: 0.5rem; }
+  .post-thumb { width: 100%; height: 140px; }
+}
 
 /* ---------- article header -------------------------------------- */
 article header {
@@ -385,6 +464,14 @@ article header h1 { margin-bottom: 0.25rem; }
   width: 100%;
   height: auto;
   border-radius: 3px;
+}
+
+/* opt-in: center a block image in article/page content */
+.centered {
+  display: block;
+  margin: 1rem auto;
+  max-width: 100%;
+  height: auto;
 }
 
 /* ---------- small screens --------------------------------------- */

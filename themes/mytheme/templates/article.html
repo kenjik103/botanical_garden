@@ -4,6 +4,17 @@
 
 {% block status %}{{ article.locale_date }}{% endblock %}
 
+{# MathJax: client-side LaTeX rendering, article pages only (no plugin, no build step) #}
+{% block extra_head %}
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']],
+             displayMath: [['$$', '$$'], ['\\[', '\\]']] }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+{% endblock %}
+
 {% block content %}
   <article>
     <header>

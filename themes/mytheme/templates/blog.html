@@ -1,17 +1,31 @@
 {% extends "base.html" %}
 
-{% block title %}blog — {{ SITENAME }}{% endblock %}
+{% block title %}Blog — {{ SITENAME }}{% endblock %}
 
 {% block content %}
-  <h1>blog</h1>
+  <h1 class="section-title">{{ "Blog"|skintext }}</h1>
 
   <section class="post-list">
     {% if articles %}
       <ul>
         {% for article in articles %}
-          <li>
-            <a href="{{ SITEURL }}/{{ article.url }}">{{ article.title }}</a>
-            <time datetime="{{ article.date.isoformat() }}">{{ article.locale_date }}</time>
+          {# whole card is one click target: the title link's ::after (in CSS)
+             stretches over the entire <li>, so thumbnail + text are all clickable
+             while staying a single semantic link. #}
+          <li class="post-card">
+            {% if article.image %}
+              <span class="post-thumb">
+                <img src="{{ SITEURL }}/images/{{ article.image }}" alt="">
+              </span>
+            {% endif %}
+            <div class="post-info">
+              <a class="post-link" href="{{ SITEURL }}/{{ article.url }}">{{ article.title }}</a>
+              <time datetime="{{ article.date.isoformat() }}">{{ article.locale_date }}</time>
+              {# optional blurb: `Description:` header -> article.description #}
+              {% if article.description %}
+                <p class="post-desc">{{ article.description }}</p>
+              {% endif %}
+            </div>
           </li>
         {% endfor %}
       </ul>
