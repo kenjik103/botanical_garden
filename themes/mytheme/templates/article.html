@@ -4,6 +4,10 @@
 
 {% block status %}{{ article.locale_date }}{% endblock %}
 
+{# Per-post background: add `Background: my-post.gif` to the post's front matter
+   and drop the file in content/images/backgrounds/. Empty → site gradient. #}
+{% block bg_image %}{{ article.background|default('') }}{% endblock %}
+
 {# MathJax: client-side LaTeX rendering, article pages only (no plugin, no build step) #}
 {% block extra_head %}
   <script>

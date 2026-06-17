@@ -4,6 +4,10 @@
 
 {% block status %}{{ gallery_images()|length }} image{{ gallery_images()|length != 1 and "s" or "" }}{% endblock %}
 
+{# Gallery background: front-matter `Background:` on the gallery page wins, else
+   the default below. Drop files in content/images/backgrounds/. #}
+{% block bg_image %}{{ page.background|default('gallery.gif', true) }}{% endblock %}
+
 {% block content %}
   <h1 class="section-title">{{ page.title|skintext }}</h1>
   {{ page.content }}

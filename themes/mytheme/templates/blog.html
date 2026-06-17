@@ -2,6 +2,11 @@
 
 {% block title %}Blog — {{ SITENAME }}{% endblock %}
 
+{# Blog-index background: drop content/images/backgrounds/blog.gif (any image
+   ext works — just match this name). Empty this block to fall back to the
+   site gradient. #}
+{% block bg_image %}blog.gif{% endblock %}
+
 {% block content %}
   <h1 class="section-title">{{ "Blog"|skintext }}</h1>
 

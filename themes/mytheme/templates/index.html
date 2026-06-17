@@ -6,6 +6,12 @@
    playlist, whose rows are the site's sections. Coordinate map + sizing
    (--wa-scale) live in style.css. Home-only: section pages open in their
    own tabs without this chrome. #}
+
+{# Homepage background: drop content/images/backgrounds/home.gif (any image ext
+   works — just match this name). Until the file exists the skin backdrop shows
+   through; empty this block to disable the slot entirely. #}
+{% block bg_image %}home.jpg{% endblock %}
+
 {% block body %}
   {% set skin = SITEURL ~ "/theme/skins/" ~ ACTIVE_SKIN %}
 
