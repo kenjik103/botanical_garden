@@ -4,9 +4,10 @@
 
 {% block status %}{{ article.locale_date }}{% endblock %}
 
-{# Per-post background: add `Background: my-post.gif` to the post's front matter
-   and drop the file in content/images/backgrounds/. Empty → site gradient. #}
-{% block bg_image %}{{ article.background|default('') }}{% endblock %}
+{# Per-post background: a post's own `Background: my-post.gif` front matter wins;
+   otherwise posts inherit the blog index's background (blog.<ext>) so the whole
+   section shares one backdrop. Drop files in content/images/backgrounds/. #}
+{% block bg_image %}{{ article.background|default(bg_for('blog'), true) }}{% endblock %}
 
 {# MathJax: client-side LaTeX rendering, article pages only (no plugin, no build step) #}
 {% block extra_head %}

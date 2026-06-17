@@ -2,9 +2,11 @@
 
 {% block title %}{{ page.title }} — {{ SITENAME }}{% endblock %}
 
-{# Per-page background: add `Background: about.gif` to the page's front matter
-   and drop the file in content/images/backgrounds/. Empty → site gradient. #}
-{% block bg_image %}{{ page.background|default('') }}{% endblock %}
+{# Per-page background: a `Background: foo.gif` front-matter line wins; otherwise
+   the page auto-detects content/images/backgrounds/<slug>.<ext> (so the page at
+   /projects/ picks up projects.gif, /about/ picks up about.png, …). Empty both
+   and the skin gradient shows. #}
+{% block bg_image %}{{ page.background|default(bg_for(page.slug), true) }}{% endblock %}
 
 {% block content %}
   <h1 class="section-title">{{ page.title|skintext }}</h1>

@@ -7,10 +7,10 @@
    (--wa-scale) live in style.css. Home-only: section pages open in their
    own tabs without this chrome. #}
 
-{# Homepage background: drop content/images/backgrounds/home.gif (any image ext
-   works — just match this name). Until the file exists the skin backdrop shows
-   through; empty this block to disable the slot entirely. #}
-{% block bg_image %}home.jpg{% endblock %}
+{# Homepage background: drop content/images/backgrounds/home.<ext> — any image
+   extension (gif/png/jpg/…) is auto-detected (see bg_for). Until a home.* file
+   exists the skin backdrop shows through; remove this block to disable the slot. #}
+{% block bg_image %}{{ bg_for('home') }}{% endblock %}
 
 {% block body %}
   {% set skin = SITEURL ~ "/theme/skins/" ~ ACTIVE_SKIN %}

@@ -2,10 +2,10 @@
 
 {% block title %}Blog — {{ SITENAME }}{% endblock %}
 
-{# Blog-index background: drop content/images/backgrounds/blog.gif (any image
-   ext works — just match this name). Empty this block to fall back to the
-   site gradient. #}
-{% block bg_image %}blog.gif{% endblock %}
+{# Blog-index background: drop content/images/backgrounds/blog.<ext> — any image
+   extension is picked up automatically (see bg_for). Remove this block to fall
+   back to the site gradient. #}
+{% block bg_image %}{{ bg_for('blog') }}{% endblock %}
 
 {% block content %}
   <h1 class="section-title">{{ "Blog"|skintext }}</h1>

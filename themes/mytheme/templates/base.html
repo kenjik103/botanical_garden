@@ -25,7 +25,8 @@
    location (/theme/css/) — turning "./images/..." into "/theme/css/images/...".
    A root-relative path sidesteps that; it's correct both locally (served at /)
    and on Cloudflare (served at the domain root). #}
-<body{% if bg_image|trim %} style="--page-bg-image:url('/images/backgrounds/{{ bg_image|trim }}?v={{ cache_bust }}')"{% endif %}>
+{% set bg_file = bg_image|trim %}
+<body{% if bg_file %} style="--page-bg-image:url('/images/backgrounds/{{ bg_file }}?v={{ asset_version('images/backgrounds/' ~ bg_file) }}')"{% endif %}>
   {# Plain shell. The Winamp clone is home-only and lives in index.html,
      which overrides `body`. Section pages (article/page/gallery) fall
      through to this default: their content sits in a Winamp window frame
