@@ -9,9 +9,9 @@ Related: [[N-body]]
 
 ### Frustration
 
-You don't truly appreciate the convenient things in life until you go without them for a time. Live in the wilderness for a while, and you'll see your AC, grocery store, shower, laundry machine, etc in a new light. Spend a week writing compute shaders in OpenGL and you'll find yourself marveling at the simplicity of NVDIA CUDA. Such was the experience of a young, bright eyed developer (me) who foolishly believed all GPU programming languages were created equal.
+You don't truly appreciate the convenient things in life until you go without them for a time. Live in the wilderness for a while, and you'll see your AC, grocery store, shower, laundry machine, etc in a new light. Spend a week writing shaders in OpenGL and you'll find yourself marveling at the simplicity of NVDIA CUDA. Such was the experience of a young, bright eyed developer (me) who foolishly believed all GPU programming languages were created equal.
 
-In my defense, I did actually get the acceleration calculation loop working. That being said, the experience was so exhausting that when I realized I needed to write another kernel to integrate position and velocity I almost cried. In order to properly convey just how painful of an experience this was lets do a side by side comparison on what the syntax for getting the acceleration loop set up looks like in OpenGL vs a traditional GPU programming language. I have an AMD graphics card, so we will be using HIP instead of CUDA. That said, HIP and CUDA are very similar; effectively identical for something of this scale. Consider this a HIP appreciation post.
+In my defense, I did actually get the acceleration calculation loop working. That being said, the experience was so frusturating that when I realized I needed to write another kernel to integrate position and velocity I almost cried. In order to properly convey just how painful of an experience this was lets do a side-by-side comparison on what getting the acceleration loop set up looks like in OpenGL vs a traditional GPU programming language. I have an AMD graphics card, so we will be using AMD's ROCm HIP instead of CUDA. That said, HIP and CUDA are very similar; effectively identical for something this scale. Consider this a HIP appreciation post.
 ### Initializing GPU Buffers
 
 In order for the CPU and GPU to communicate, a system of buffer sharing must be implemented. Lets look at how OpenGL implements this vs HIP. 
@@ -47,7 +47,7 @@ In order for the CPU and GPU to communicate, a system of buffer sharing must be 
 
 Take a moment to appreciate the simple and logical workflow HIP achieved. Instantiate your buffer, malloc the appropriate size, and copy over your data. Done.
 
-Now let me attempt to explain what is going on in the OpenGL side. I wrote this code myself and I'm still not 100% sure whats happening but nevertheless I will try. Declare an ID for the buffer. Generate a generic buffer tied to the declared ID. Bind the generic buffer (by ID) to the specific buffer type that the GPU can interface with. Copy the CPU data to the GPU buffer (by buffer type). Bind the buffer ID to a arbitrary "slot" ID within the GPU. Repeat.
+Now let me attempt to explain what is going on in the OpenGL side. I wrote this code myself and I'm still not 100% sure what's happening but nevertheless: Declare an ID for the buffer. Generate a generic buffer tied to the declared ID. Bind the generic buffer (by ID) to a specific buffer type the GPU can interface with. Copy the CPU data to the GPU buffer (by buffer type). Bind the buffer ID to a arbitrary "slot" ID within the GPU. Repeat.
 ###  Invoking the Kernel
 #### OpenGL
 ```c++
@@ -89,7 +89,7 @@ __global__ void accel_compute(const float4* d_p, float4* d_a) {
 }
 ```
 
-Remember that buffer slot ID from earlier? I hope so because you're going to need it here. Also, I know the number of blocks was declared when you invoked the shader, but the number of threads within each block is going to need to be declared within the shader itself; that's just how thing are sorry.
+Remember that buffer slot ID from earlier? I hope so because you're going to need it here. Also, I know the number of blocks was declared when you invoked the shader, but the number of threads within each block is going to need to be declared within the shader itself; that's just how thing are. Sorry.
 
 Mind you, the compute shader itself is in an entirely different file from wherever you invoked it from. HIP kernels are declared like regular C++ functions; same file.
 
