@@ -2,8 +2,7 @@ Title: N-body devlog #3 - Kick, Drift, Kick
 Date: 2026-07-11
 Slug: n-body-devlog-3
 Image: n-body/blog3header.png
-Description: Why nothing in my life ever comes easy and integrating acceleration
-Related: [[N-body]]
+Description: Why nothing in my life ever comes easy and integrating for position
 
 ![hiya]({static}/images/n-body/blog3header.png){: .centered}
 
