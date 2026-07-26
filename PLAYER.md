@@ -48,8 +48,12 @@ A single `player.js` in the theme's static JS:
    - prev / next → change index, load, play
 4. **Cycling:** `audio.addEventListener('ended', nextTrack)` advances automatically; wrap
    from last back to first.
-5. Optional **shuffle / repeat** mapped onto the `shufrep.bmp` sprites (toggle state → swap to
-   the "on" sprite offset; shuffle randomizes next index, repeat re-plays current).
+5. **Shuffle is on by default, unconditionally — no toggle.** `player.js` shuffles the
+   fetched track list once on load and reshuffles whenever prev/next/`ended` wraps past an
+   end, so the rotation never repeats the same lap twice and dropping a new file into
+   `content/music/` never requires renaming/numbering it into a position. **Repeat** is
+   still optional and, if added later, would map onto the `shufrep.bmp` sprites (toggle
+   state → swap to the "on" sprite offset; re-plays the current track instead of advancing).
 
 ## Sprite / chrome integration
 
@@ -83,7 +87,8 @@ These all reuse assets already produced by the skin-import tool (SKIN_IMPORT.md)
    the first track. Prove the audio plumbing end-to-end.
 3. **Prev / next + auto-cycle.** Index navigation and the `ended` → next handler.
 4. **Bitmap readouts.** `numbers.bmp` time display and the `text.bmp` title marquee.
-5. **Shuffle / repeat** via the `shufrep.bmp` sprites.
+5. **Shuffle** — done, on by default (no toggle/sprite). **Repeat** via the `shufrep.bmp`
+   sprites is still open if wanted.
 6. **(Optional) visualizer.** The `AnalyserNode` → canvas spectrum analyzer.
 
 ## How to direct Claude Code

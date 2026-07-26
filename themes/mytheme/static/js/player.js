@@ -10,8 +10,10 @@
  * playing); we never try to keep <audio> alive across navigation.
  *
  * This piece wires play/pause/stop/prev/next + auto-cycle and the display
- * readouts (bitmap time + scrolling title). Shuffle/repeat and the visualizer
- * come in later steps.
+ * readouts (bitmap time + scrolling title). Playback order is shuffled (see
+ * shuffle() below), not the manifest's filename order — drop a new file into
+ * content/music/ and it just joins the rotation, no renaming/numbering needed.
+ * Repeat and the visualizer come in later steps.
  */
 (function () {
   var root = document.querySelector(".winamp-main");
@@ -25,6 +27,16 @@
   function resolve(path) {
     // resolve relative to the page (homepage at the site root)
     return new URL(path, document.baseURI).href;
+  }
+
+  // Fisher-Yates, in place. Called once on load and again whenever playback
+  // wraps around, so the rotation keeps re-randomizing instead of repeating
+  // the same lap in the same order.
+  function shuffle(arr) {
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+    }
   }
 
   /* ---- bitmap time display (numbers.bmp digits) ---- */
@@ -112,17 +124,30 @@
       audio.pause();
       audio.currentTime = 0;
     },
-    prev: function () { loadTrack(index - 1, true); },
-    next: function () { loadTrack(index + 1, true); },
+    prev: function () { advance(-1); },
+    next: function () { advance(1); },
   };
+
+  // Move one step through the shuffled order; reshuffle on wrap so each lap
+  // through the rotation lands in a fresh random order.
+  function advance(delta) {
+    var n = tracks.length;
+    if (!n) return;
+    var i = index + delta;
+    if (i < 0 || i >= n) {
+      shuffle(tracks);
+      i = delta > 0 ? 0 : n - 1;
+    }
+    loadTrack(i, true);
+  }
 
   root.querySelectorAll("[data-action]").forEach(function (btn) {
     var fn = actions[btn.getAttribute("data-action")];
     if (fn) btn.addEventListener("click", fn);
   });
 
-  // auto-advance to the next track (wrapping last -> first)
-  audio.addEventListener("ended", function () { loadTrack(index + 1, true); });
+  // auto-advance to the next track (wrapping last -> first, reshuffled)
+  audio.addEventListener("ended", function () { advance(1); });
 
   // reflect play state on the root for styling / future indicators
   audio.addEventListener("play", function () { root.classList.add("is-playing"); });
@@ -136,7 +161,11 @@
 
   fetch(resolve("music.json"))
     .then(function (r) { return r.ok ? r.json() : []; })
-    .then(function (list) { tracks = Array.isArray(list) ? list : []; showFirst(); })
+    .then(function (list) {
+      tracks = Array.isArray(list) ? list : [];
+      shuffle(tracks);
+      showFirst();
+    })
     .catch(function () { tracks = []; });
 
   if (marquee && marquee.dataset.chars) {
