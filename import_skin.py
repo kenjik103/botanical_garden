@@ -58,6 +58,23 @@ SPRITE_ALIASES = {
     "MAIN_STOP_BUTTON": "stop",
     "MAIN_NEXT_BUTTON": "next",
     "MAIN_EJECT_BUTTON": "eject",
+    # NUMS_EX ships INSTEAD OF (rarely alongside) NUMBERS in some skins — the
+    # same 10 digits + minus-sign glyphs, redrawn into a differently-named
+    # bitmap. Alias to the canonical (non-EX) classes so the site's time
+    # display (which only ever writes .spr-digit-N) works regardless of
+    # which bitmap a given skin's author happened to ship.
+    "NO_MINUS_SIGN_EX": "no-minus-sign",
+    "MINUS_SIGN_EX": "minus-sign",
+    "DIGIT_0_EX": "digit-0",
+    "DIGIT_1_EX": "digit-1",
+    "DIGIT_2_EX": "digit-2",
+    "DIGIT_3_EX": "digit-3",
+    "DIGIT_4_EX": "digit-4",
+    "DIGIT_5_EX": "digit-5",
+    "DIGIT_6_EX": "digit-6",
+    "DIGIT_7_EX": "digit-7",
+    "DIGIT_8_EX": "digit-8",
+    "DIGIT_9_EX": "digit-9",
 }
 
 # Playlist frame pieces cropped into standalone PNGs. Two reasons: (1) you

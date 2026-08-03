@@ -10,18 +10,63 @@ CACHE_BUST = int(time.time())
 
 
 def _gallery_images():
-    """List image filenames in content/images/gallery/, sorted.
+    """Images in content/images/gallery/, sorted, as {name, width, height}.
 
     Exposed to templates via JINJA_GLOBALS so gallery.html can glob the
     folder at build time without a plugin (see PLAN.md "Gallery").
+
+    Pixel dimensions come from the file header (Pillow, already required by
+    import_skin.py). The gallery collage lazy-loads below-the-fold photos, and
+    a lazy <img> with no known size is 0px tall until it loads — in a
+    multi-column masonry that makes the whole layout reshuffle as you scroll.
+    Emitting width/height lets the browser reserve the right box up front.
+    width/height are None for formats Pillow can't read (e.g. .svg); the
+    template just omits the attributes then.
     """
     base = os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
         "content", "images", "gallery",
     )
     exts = (".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg")
-    names = (os.path.basename(p) for p in _glob(os.path.join(base, "*")))
-    return sorted(n for n in names if n.lower().endswith(exts))
+    paths = sorted(
+        p for p in _glob(os.path.join(base, "*"))
+        if p.lower().endswith(exts)
+    )
+
+    try:
+        from PIL import Image
+    except ImportError:
+        Image = None
+
+    out = []
+    for p in paths:
+        w = h = None
+        if Image is not None:
+            try:
+                with Image.open(p) as im:
+                    w, h = im.size
+            except Exception:
+                pass
+        out.append({"name": os.path.basename(p), "width": w, "height": h})
+    return out
+
+
+def _available_skins():
+    """Folder names under themes/mytheme/static/skins/, sorted.
+
+    Exposed to templates via JINJA_GLOBALS so base.html can hand the full
+    list to the client-side skin switcher (the homepage +FILE/-FILE buttons
+    cycle through it) without hand-maintaining a separate list here.
+    """
+    base = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "themes", "mytheme", "static", "skins",
+    )
+    names = (
+        n for n in os.listdir(base)
+        if os.path.isfile(os.path.join(base, n, "skin-vars.css"))
+    ) if os.path.isdir(base) else ()
+    return sorted(names)
 
 
 def _bg_for(stem):
@@ -122,6 +167,7 @@ JINJA_GLOBALS = {
     "cache_bust": CACHE_BUST,
     "asset_version": _asset_version,
     "bg_for": _bg_for,
+    "available_skins": _available_skins,
 }
 
 # --- Skins (see SKIN_IMPORT.md) ---------------------------------------------
@@ -239,6 +285,99 @@ def _write_music_manifest(pelican):
     print("  [music] %d track(s) -> music.json" % len(tracks))
 
 
-# Wire the hook at config-load time (Pelican executes this file at startup).
+# --- Skin auto-import (see SKIN_IMPORT.md) -----------------------------------
+# Drop a .wsz into skins/ (repo root) and the next build imports it: no manual
+# `python import_skin.py ...` invocation needed. Mirrors the music.json
+# pattern above — the folder is the source of truth.
+_SKINS_SRC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "skins")
+_SKINS_OUT_DIR = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "themes", "mytheme", "static", "skins",
+)
+
+
+def _skin_slug(wsz_filename):
+    """".wsz filename -> URL-safe folder slug, e.g. "Blame - Wired.wsz" ->
+    "blame-wired", "Persona.wsz" -> "persona"."""
+    import re
+    stem = os.path.splitext(wsz_filename)[0]
+    return re.sub(r"[^a-z0-9]+", "-", stem.lower()).strip("-") or "skin"
+
+
+def _relocate_stray_wsz():
+    """.wsz files sometimes get dropped directly into themes/mytheme/static/
+    skins/ (the generated-output folder) instead of skins/ (the source
+    folder) — an easy mix-up since both live under a folder someone might
+    call "the theme folder". Move any found there into skins/ before the
+    import scan below, so they get picked up the same as a properly-placed
+    one, and the output folder goes back to holding only generated
+    subfolders. Skips (and warns about) a name collision rather than
+    overwriting an existing source file."""
+    import shutil
+    if not os.path.isdir(_SKINS_OUT_DIR):
+        return
+    os.makedirs(_SKINS_SRC_DIR, exist_ok=True)
+    for name in sorted(os.listdir(_SKINS_OUT_DIR)):
+        src = os.path.join(_SKINS_OUT_DIR, name)
+        if not (name.lower().endswith(".wsz") and os.path.isfile(src)):
+            continue
+        dest = os.path.join(_SKINS_SRC_DIR, name)
+        if os.path.exists(dest):
+            print("  [skins] %s already exists in skins/, leaving the copy in "
+                  "themes/mytheme/static/skins/ alone" % name)
+            continue
+        shutil.move(src, dest)
+        print("  [skins] moved %s -> skins/ (that's the source folder; "
+              "themes/mytheme/static/skins/ only holds generated output)" % name)
+
+
+def _sync_skins(pelican=None):
+    """`initialized` signal handler: for every skins/*.wsz, (re)generate its
+    theme assets via import_skin.py's pipeline if missing or stale (the .wsz
+    is newer than its generated skin-vars.css). Runs before generation, so
+    available_skins() and ACTIVE_SKIN both see freshly-imported folders.
+    A skin that fails to import is skipped (and its partial output removed)
+    rather than aborting the whole build — one bad .wsz shouldn't block it."""
+    import shutil
+    import sys
+
+    _relocate_stray_wsz()
+    if not os.path.isdir(_SKINS_SRC_DIR):
+        return
+    root = os.path.dirname(os.path.abspath(__file__))
+    if root not in sys.path:
+        sys.path.insert(0, root)
+    import import_skin
+
+    for name in sorted(os.listdir(_SKINS_SRC_DIR)):
+        if not name.lower().endswith(".wsz"):
+            continue
+        wsz_path = os.path.join(_SKINS_SRC_DIR, name)
+        out_dir = os.path.join(_SKINS_OUT_DIR, _skin_slug(name))
+        marker = os.path.join(out_dir, "skin-vars.css")
+        if os.path.isfile(marker) and os.path.getmtime(marker) >= os.path.getmtime(wsz_path):
+            continue  # already up to date
+        try:
+            import_skin.main([wsz_path, "--out", out_dir])
+        except SystemExit:
+            pass  # import_skin already printed why
+        except Exception as e:
+            print("  [skins] failed to import %s: %s" % (name, e))
+            shutil.rmtree(out_dir, ignore_errors=True)  # don't leave a half-built skin
+
+
+def _write_skins_manifest(pelican):
+    """`finalized` signal handler: emit output/skins.json — the raw
+    content/projects/ pages aren't templated (see CLAUDE.md) so they can't
+    call available_skins() directly; skin-project.js fetches this instead."""
+    import json
+    out = pelican.settings["OUTPUT_PATH"]
+    with open(os.path.join(out, "skins.json"), "w", encoding="utf-8") as fh:
+        json.dump(_available_skins(), fh)
+    print("  [skins] %d skin(s) -> skins.json" % len(_available_skins()))
+
+
+# Wire the hooks at config-load time (Pelican executes this file at startup).
 from pelican import signals as _signals  # noqa: E402
+_signals.initialized.connect(_sync_skins)
 _signals.finalized.connect(_write_music_manifest)
+_signals.finalized.connect(_write_skins_manifest)

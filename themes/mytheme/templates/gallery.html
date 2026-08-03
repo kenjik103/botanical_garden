@@ -8,16 +8,23 @@
    any content/images/backgrounds/gallery.<ext> is auto-detected (see bg_for). #}
 {% block bg_image %}{{ page.background|default(bg_for('gallery'), true) }}{% endblock %}
 
+{# Photos are the point of this page — give the window frame extra width. #}
+{% block surface_class %} is-wide{% endblock %}
+
 {% block content %}
   <h1 class="section-title">{{ page.title|skintext }}</h1>
   {{ page.content }}
 
   {% set images = gallery_images() %}
   {% if images %}
-    <div class="gallery-grid">
+    {# Collage layout is pure CSS (nth-child cycles) — see "gallery: collage"
+       in style.css. Full-size camera JPEGs, so lazy-load below the fold. #}
+    <div class="gallery-collage">
       {% for img in images %}
         <figure class="gallery-item">
-          <img src="{{ SITEURL }}/images/gallery/{{ img }}" alt="{{ img }}">
+          <img src="{{ SITEURL }}/images/gallery/{{ img.name }}" alt="{{ img.name }}"
+               {% if img.width %}width="{{ img.width }}" height="{{ img.height }}"{% endif %}
+               loading="{{ loop.index <= 3 and 'eager' or 'lazy' }}" decoding="async">
         </figure>
       {% endfor %}
     </div>

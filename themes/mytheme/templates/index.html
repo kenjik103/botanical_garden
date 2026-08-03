@@ -52,6 +52,40 @@
 
       </div>
 
+      {# ---- equalizer panel: 1:1 eqmain.png clone ----
+         Docks flush between the main window and the playlist panel below,
+         same as real Winamp's default vertical stack. ON/AUTO are real
+         (if audio-inert) toggle buttons; close/presets are decorative,
+         matching the main window's own window-chrome buttons above. The
+         11 sliders (preamp + 10 bands) are draggable — see eq.js — but
+         nothing here processes real audio; it's the classic skin's EQ
+         chrome kept as a fully-slideable visual toy, not a DSP graph.
+         Band x-positions follow the classic Winamp EQ pitch (78px, +18px
+         per band); coordinate map lives in style.css next to eq.js's
+         matching TOP_MIN/TOP_MAX constants. #}
+      <div class="winamp-eq"
+           style="background-image:url('{{ SITEURL }}/theme/skins/{{ ACTIVE_SKIN }}/eqmain.png')">
+        <div class="spr-eq-title-bar-selected wa-eq-titlebar" aria-hidden="true"></div>
+        <span class="spr-eq-close-button wa-eq-close" aria-hidden="true"></span>
+
+        <button type="button" class="spr-eq-on-button wa-eq-on" data-eq-toggle
+                aria-pressed="false" aria-label="Toggle equalizer on"></button>
+        <button type="button" class="spr-eq-auto-button wa-eq-auto" data-eq-toggle
+                aria-pressed="false" aria-label="Toggle auto-gain"></button>
+        <span class="spr-eq-graph-background wa-eq-graph" aria-hidden="true"></span>
+        <span class="spr-eq-presets-button wa-eq-presets" aria-hidden="true"></span>
+
+        <button type="button" class="spr-eq-slider-thumb wa-eq-thumb" style="left:21px"
+                role="slider" tabindex="0" aria-label="Preamp"
+                aria-valuemin="-12" aria-valuemax="12" aria-valuenow="0"></button>
+        {% for hz in ["60", "170", "310", "600", "1K", "3K", "6K", "12K", "14K", "16K"] %}
+        <button type="button" class="spr-eq-slider-thumb wa-eq-thumb"
+                style="left:{{ 78 + loop.index0 * 18 }}px"
+                role="slider" tabindex="0" aria-label="{{ hz }}Hz band"
+                aria-valuemin="-12" aria-valuemax="12" aria-valuenow="0"></button>
+        {% endfor %}
+      </div>
+
       {# ---- playlist panel: rows are the site sections (the nav) ----
          Built the way Webamp assembles it: fixed corner sprites with
          flex-grow fill strips that tile the edge-tile PNGs (cropped by
@@ -75,15 +109,15 @@
         <div class="pl-mid">
           <span class="pl-edge-left" aria-hidden="true"
                 style="background-image:url('{{ skin }}/pledit-left-tile.png')"></span>
-          {# rows mimic a Winamp track list: "N. Artist - Title" left, length
+          {# rows mimic a Winamp track list: "N. Section" left, length
              right. (fake times.) Open in a fresh tab so the player stays put. #}
           <ul class="pl-body">
             <li><a href="{{ SITEURL }}/blog/" target="_blank" rel="noopener noreferrer">
-              <span class="pl-name">1. Read My Mind - The Killers</span><span class="pl-time">4:07</span></a></li>
+              <span class="pl-name">1. Blog</span><span class="pl-time">4:07</span></a></li>
             <li><a href="{{ SITEURL }}/projects/" target="_blank" rel="noopener noreferrer">
-              <span class="pl-name">2. 180db_[130] - Aphex Twin</span><span class="pl-time">3:08</span></a></li>
+              <span class="pl-name">2. Projects</span><span class="pl-time">3:08</span></a></li>
             <li><a href="{{ SITEURL }}/gallery/" target="_blank" rel="noopener noreferrer">
-              <span class="pl-name">3. Photograph - Def Leppard</span><span class="pl-time">4:09</span></a></li>
+              <span class="pl-name">3. Photo Gallery</span><span class="pl-time">4:09</span></a></li>
           </ul>
           {# right edge doubles as the scrollbar groove (the right-tile sprite);
              the handle is positioned/dragged by playlist-scroll.js #}
@@ -93,9 +127,20 @@
           </span>
         </div>
 
-        <div class="pl-bottom" aria-hidden="true">
-          <span class="spr-playlist-bottom-left-corner"></span>
-          <span class="spr-playlist-bottom-right-corner"></span>
+        {# The corner art already has "+FILE"/"-FILE" painted into it (classic
+           Winamp pledit.png bottom bar) — these two buttons are transparent
+           hit-targets laid over that existing artwork, repurposed to cycle
+           the site's active skin (see skin-buttons.js) rather than a real
+           playlist add/remove. Position is the fixed Winamp pledit layout
+           (same offset in every skin, since it's a spec-fixed template), not
+           anything measured per-skin. #}
+        <div class="pl-bottom">
+          <span class="spr-playlist-bottom-left-corner" aria-hidden="true"></span>
+          <button type="button" class="pl-skin-btn pl-skin-prev"
+                  data-skin-cycle="prev" aria-label="Previous skin"></button>
+          <button type="button" class="pl-skin-btn pl-skin-next"
+                  data-skin-cycle="next" aria-label="Next skin"></button>
+          <span class="spr-playlist-bottom-right-corner" aria-hidden="true"></span>
         </div>
       </nav>
 
@@ -109,4 +154,6 @@
 
   <script src="{{ SITEURL }}/theme/js/playlist-scroll.js?v={{ cache_bust }}" defer></script>
   <script src="{{ SITEURL }}/theme/js/player.js?v={{ cache_bust }}" defer></script>
+  <script src="{{ SITEURL }}/theme/js/skin-buttons.js?v={{ cache_bust }}" defer></script>
+  <script src="{{ SITEURL }}/theme/js/eq.js?v={{ cache_bust }}" defer></script>
 {% endblock %}

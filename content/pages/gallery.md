@@ -2,5 +2,5 @@ Title: Gallery
 Slug: gallery
 Template: gallery
 
-Placeholder images for now — the grid lays out whatever lives in
-`content/images/gallery/`, so dropping real files in there is all it takes.
+The collage lays out whatever lives in `content/images/gallery/`, so dropping
+files in there is all it takes.

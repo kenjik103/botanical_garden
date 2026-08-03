@@ -133,3 +133,17 @@ The generated files live under the theme's static dir, so Pelican serves them au
 Switching skins = re-running the tool against a different `.wsz` (or pointing the site's
 active-skin variable at a different generated folder). This is the data side of the
 CSS-custom-property skin switcher already planned in PLAN.md.
+
+## Auto-import (no manual CLI step)
+
+Drop a `.wsz` into `skins/` (repo root, alongside `import_skin.py`) and the next
+`pelican content` / `pelican --listen` imports it automatically — a `pelican.signals.initialized`
+handler in `pelicanconf.py` (`_sync_skins`) scans that folder and runs the pipeline above for
+anything missing or newer than its generated output. The folder name is slugified from the
+`.wsz` filename (`Blame - Wired.wsz` → `blame-wired`). Still open the generated `preview.html`
+to eyeball the result — auto-running the import doesn't replace reviewing it.
+
+The homepage's +FILE/-FILE cycle buttons (`available_skins()`) and the `content/projects/`
+pages (which fetch `output/skins.json`, since they're raw/verbatim and can't call
+`available_skins()` directly — see CLAUDE.md) both read the generated folder list at build
+time, so a newly-imported skin reaches every page with no further edits.

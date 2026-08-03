@@ -210,6 +210,52 @@ body {
 .wa-next  { left: 108px; top: 88px; }
 .wa-eject { left: 136px; top: 89px; }
 
+/* ---------- the equalizer panel (eqmain.png sprites) ------------ *
+   A 1:1 clone of the classic Winamp EQ window, docked flush between the
+   main window and the playlist panel (same 275x116 native size, same
+   --wa-scale zoom via .winamp-stack). ON/AUTO are real (if audio-inert)
+   toggle buttons — the skin ships a genuine off/on sprite pair for them
+   (see write_sprites_css's SELECTED handling in import_skin.py), so
+   clicking persists a visual toggle state via eq.js. Close/presets are
+   decorative, matching the main window's own window-chrome buttons (no
+   real window management or preset menu exists here either). Nothing in
+   this panel processes real audio — it's the classic skin's EQ chrome,
+   kept as a fully-slideable visual toy rather than a Web Audio DSP graph.
+
+   Unlike main.png (which IS just the 275x116 window), eqmain.png is the
+   whole combined EQMAIN sheet — window + titlebar + buttons + graph +
+   sliders all stacked in one bitmap (275x315-ish; varies per skin). No
+   background-size here: that would scale the WHOLE sheet down to fit
+   275x116, distorting it. Left at its natural size with no-repeat, the
+   image is simply clipped to the box, showing exactly the top-left
+   EQ_WINDOW_BACKGROUND region — the same crop the sprite table already
+   uses for every other piece of this panel.
+   ---------------------------------------------------------------- */
+.winamp-eq {
+  position: relative;
+  width: 275px;
+  height: 116px;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+.winamp-eq > * { position: absolute; }
+.winamp-eq button { cursor: pointer; border: 0; padding: 0; background-color: transparent; }
+
+.wa-eq-titlebar { top: 0;    left: 0; }
+.wa-eq-close    { top: 3px;  left: 264px; }
+.wa-eq-on       { top: 18px; left: 14px; }
+.wa-eq-auto     { top: 18px; left: 39px; }
+.wa-eq-graph    { top: 17px; left: 86px; }
+.wa-eq-presets  { top: 18px; left: 217px; }
+
+/* Slider thumbs: 1 preamp + 10 bands, each positioned by `left` inline
+   (index.html, computed from the classic 18px band pitch) and dragged
+   vertically by eq.js between top:38px (+12dB) and top:90px (-12dB) — 64px
+   (this default) is the midpoint, 0dB. Those three numbers are shared with
+   eq.js's TOP_MIN/TOP_MAX constants; change one, change the other. */
+.wa-eq-thumb { top: 64px; }
+.wa-eq-thumb:focus-visible { outline: 1px solid var(--accent); outline-offset: 1px; }
+
 /* ---------- the playlist panel (pledit sprites) ---------------- *
    Docks flush under the main window (275px wide). Assembled the way
    Webamp does it: fixed corner/title sprite pieces with flex-grow fill
@@ -277,7 +323,26 @@ body {
 .pl-body a:focus-visible { background: var(--selected-bg); color: var(--link); outline: none; }
 
 /* --- bottom: two corner pieces meet flush at 275px --- */
-.pl-bottom { display: flex; height: 38px; }
+.pl-bottom { display: flex; height: 38px; position: relative; }
+
+/* Skin-cycle hit-targets, laid over the "+FILE"/"-FILE" buttons already
+   painted into the left corner's artwork (fixed Winamp pledit.png layout —
+   see the comment in index.html). Transparent so any skin's corner art
+   shows through unmodified; a translucent overlay stands in for a pressed
+   state instead of a skin-specific sprite swap. */
+.pl-skin-btn {
+  position: absolute;
+  top: 8px;
+  width: 22px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.pl-skin-prev { left: 14px; }
+.pl-skin-next { left: 43px; }
+.pl-skin-btn:active { background: rgba(0, 0, 0, 0.25); }
 
 /* screen-reader-only labels for the icon-only transport links */
 .visually-hidden {
@@ -296,6 +361,8 @@ body {
    hides sub-pixel seams between pieces.
    --------------------------------------------------------------------- */
 .content-surface { width: 100%; max-width: 860px; margin-top: 1rem; }
+/* opt-in wider surface (gallery.html) — photos want the extra room. */
+.content-surface.is-wide { max-width: 1180px; }
 
 :root { --wf-scale: 2; }
 .wa-frame { image-rendering: pixelated; background: var(--content-bg); }
@@ -525,36 +592,83 @@ article header h1 { margin-bottom: 0.25rem; }
   box-shadow: inset 0 1px 2px rgba(20, 50, 90, 0.12);
 }
 
-/* ---------- gallery --------------------------------------------- */
-.gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-  gap: 0.9rem;
-  margin-top: 1.25rem;
+/* ---------- gallery: collage ------------------------------------------
+   Two masonry columns (CSS multi-column, so mixed portrait/landscape shots
+   pack without gaps), then each photo is nudged off the column grid: widths,
+   side offsets and gaps all cycle on *different* periods (3n / 4n / 5n / 7n)
+   so the pattern never reads as a repeat. Photos stay square to the page —
+   no rotation. Every 6th photo spans
+   both columns as a big single-per-row shot, alternating which edge it hugs.
+   No JS and no per-image markup: it works for any number of files dropped
+   into content/images/gallery/.
+   --------------------------------------------------------------------- */
+.gallery-collage {
+  column-count: 2;
+  column-gap: 2.5rem;
+  margin-top: 1.5rem;
+  /* breathing room so the offset photos aren't flush with the frame edges */
+  padding: 0.5rem 0.5rem 0;
 }
 
 .gallery-item {
-  margin: 0;
-  padding: 6px;
+  break-inside: avoid;
+  margin: 0 0 2.25rem;
+  padding: 9px;
   background: var(--content-bg);
   border: 1px solid var(--window-border);
   border-radius: var(--radius-sm);
   box-shadow:
     inset 1px 1px 0 var(--bevel-light),
-    0 2px 6px rgba(20, 50, 90, 0.2);
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
-}
-.gallery-item:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    inset 1px 1px 0 var(--bevel-light),
-    0 0 12px var(--accent-glow);
+    0 3px 10px rgba(20, 50, 90, 0.28);
 }
 .gallery-item img {
   display: block;
   width: 100%;
   height: auto;
   border-radius: 3px;
+}
+
+/* --- width variation (period 3, 4, 7) --- */
+.gallery-item                 { width: 100%; }
+.gallery-item:nth-child(3n+1) { width: 93%; }
+.gallery-item:nth-child(4n)   { width: 84%; }
+.gallery-item:nth-child(7n+2) { width: 78%; }
+
+/* --- side offsets: `auto` on one side pushes a narrow photo to that edge,
+       so nothing can overflow the column no matter the width above --- */
+.gallery-item:nth-child(2n)   { margin-left: auto; }
+.gallery-item:nth-child(5n+3) { margin-left: auto; margin-right: 0; }
+.gallery-item:nth-child(7n+4) { margin-left: 0; margin-right: auto; }
+
+/* --- vertical rhythm (period 3, 5) --- */
+.gallery-item:nth-child(3n+2) { margin-bottom: 3.5rem; }
+.gallery-item:nth-child(5n)   { margin-bottom: 1.25rem; }
+
+/* --- every 6th photo: full-width hero across both columns --- */
+.gallery-item:nth-child(6n+1) {
+  column-span: all;
+  width: 74%;
+  margin: 0.5rem 0 3rem auto; /* hugs the right edge */
+}
+.gallery-item:nth-child(12n+1) {
+  width: 80%;
+  margin: 0.5rem auto 3rem 0; /* ...and every other one hugs the left */
+}
+
+/* One column on narrow screens; drop the offsets so photos stay as wide
+   as possible. */
+@media (max-width: 700px) {
+  .gallery-collage { column-count: 1; column-gap: 0; padding: 0.5rem 0 0; }
+  .gallery-item,
+  .gallery-item:nth-child(3n+1),
+  .gallery-item:nth-child(4n),
+  .gallery-item:nth-child(7n+2),
+  .gallery-item:nth-child(6n+1),
+  .gallery-item:nth-child(12n+1) {
+    width: 96%;
+    margin: 0 auto 1.75rem;
+  }
+  .gallery-item:nth-child(2n) { margin-left: auto; margin-right: 0; }
 }
 
 /* opt-in: center a block image in article/page content */

@@ -58,16 +58,7 @@
   var SEP = "   ***   ";
 
   function glyphs(text, into) {
-    var up = text.toUpperCase();
-    for (var i = 0; i < up.length; i++) {
-      var pos = chars[up[i]] || chars[" "];
-      if (!pos) continue;
-      var s = document.createElement("span");
-      s.className = "skinchar";
-      s.style.backgroundPosition =
-        (pos[0] ? -pos[0] + "px" : "0") + " " + (pos[1] ? -pos[1] + "px" : "0");
-      into.appendChild(s);
-    }
+    into.appendChild(window.SkinGlyphs(text, chars));
   }
 
   // Webamp marquee format: "N. Artist - Title (m:ss)" (artist/length optional)
